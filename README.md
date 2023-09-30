@@ -10,3 +10,6 @@ Change the Canvas Code for now.
 Futures (Maybe):
 
 1. Animation for each pixels you place + delay per frame
+
+
+Time To Finish ~40s
