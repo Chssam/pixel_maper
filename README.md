@@ -7,6 +7,6 @@ No optimize done.
 
 Change the Canvas Code for now.
 
-Next step:
+Futures (Maybe):
 
-1. Type code number
+1. Animation for each pixels you place + delay per frame
