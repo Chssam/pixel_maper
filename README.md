@@ -1,15 +1,44 @@
 # pixel_maper
-Placemap for Pxls
+Placemap for Pxls.
 
 Simple As This, For Now...
 
 No optimize done.
 
-Change the Canvas Code for now.
-
+Features:
+```
+1. User Stats:
+Pixels
+Undo
+2. Placemap Without Undo
+```
 Futures (Maybe):
-
+```
 1. Animation for each pixels you place + delay per frame
+2. Placemap With Only Undo
+3. Pixels Survived?
+```
+Instruction
 
+1. Open settings.ron
+2. Change following value
+
+```
+Settings(
+    user_key: "",      <--- User canvas key
+    canvas_code: 71,   <--- The canvas
+    name: "Name"       <--- Any name
+)
+```
+
+File name in "input" folder
+```
+Ex: Canvas Code = 71
+LOG: pixels_c71.sanit.log.tar.xz
+IMAGE: Canvas_71_Initial.png
+PALETTE: palette_c71.txt | Got From Clueless => /palette => Paint.Net
+```
+After finished process, 2 items added in "output" folder, Placemap and Stats.
 
 Time To Finish ~40s
+
