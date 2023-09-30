@@ -8,4 +8,6 @@ authors = ["Chssam"]
 xz2 = "*"
 image = "*"
 sha256 = "*"
-hex ="*"
+hex = "*"
+ron = "*"
+serde = { version = "*", features = ["derive"]}
