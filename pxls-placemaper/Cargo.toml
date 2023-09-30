@@ -1,0 +1,11 @@
+[package]
+name = "placemap-maker"
+version = "0.1.0"
+edition = "2021"
+authors = ["Chssam"]
+
+[dependencies]
+xz2 = "*"
+image = "*"
+sha256 = "*"
+hex ="*"
