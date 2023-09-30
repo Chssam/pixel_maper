@@ -1,5 +1,5 @@
 # pixel_maper
-Placemap for Pxls.
+Placemap for pxls.space
 
 Simple As This, For Now...
 
