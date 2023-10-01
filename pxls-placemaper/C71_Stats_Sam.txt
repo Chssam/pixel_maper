@@ -1,3 +1,0 @@
-Users: Sam
-Pixels: 32480
-Undo: 265
