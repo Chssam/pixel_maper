@@ -1,6 +1,8 @@
 # pixel_maper
 Placemap for pxls.space
 
+Warn: Survivor Pixels Still Not Accurate, It Still Count Undo Pixels
+
 Simple As This, For Now... Maybe Little Too Much Boiler Code.
 
 No optimize done.
