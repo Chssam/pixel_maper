@@ -1,7 +1,7 @@
 # pixel_maper
 Placemap for pxls.space
 
-Simple As This, For Now...
+Simple As This, For Now... Maybe Little Too Much Boiler Code.
 
 No optimize done.
 
