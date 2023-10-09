@@ -9,6 +9,7 @@ Features:
 ```
 1. User Stats:
 Pixels
+Survivors
 Undo
 2. Placemap Without Undo
 ```
@@ -28,6 +29,7 @@ Settings(
     user_key: "",      <--- User canvas key
     canvas_code: 71,   <--- The canvas
     name: "Name"       <--- Any name
+    pix_th: [100]      <--- Broken
 )
 ```
 
