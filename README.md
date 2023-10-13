@@ -15,6 +15,8 @@ Features:
 Pixels
 Survivors
 Undo
+Pixel (th)
+
 2. Placemap Without Undo
 ```
 Futures (Maybe):
