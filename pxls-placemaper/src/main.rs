@@ -1,8 +1,10 @@
 use image::{Rgba, RgbaImage};
 use serde::{Deserialize, Serialize};
 use sha256::digest;
-use std::fs::{self, File};
-use std::io::prelude::*;
+use std::{
+    fs::{self, File},
+    io::prelude::*,
+};
 use xz2::read::XzDecoder;
 
 /*
@@ -43,9 +45,9 @@ fn main() {
 
     let xz_file = format!("{INPUT}pixels_c{canvas_code}.sanit.log.tar.xz");
     let palette_file = format!("{INPUT}palette_c{canvas_code}.txt");
-    let name_img = format!("{OUTPUT}C{canvas_code}_Placemap_{name}.png");
-    let name_img_survivor = format!("{OUTPUT}C{canvas_code}_Placemap_Survivor_{name}.png");
-    let output_stats = format!("{OUTPUT}C{canvas_code}_Stats_{name}.txt");
+    let pix_img = format!("{OUTPUT}C{canvas_code}_Placemap_{name}.png");
+    let pix_img_survivor = format!("{OUTPUT}C{canvas_code}_Placemap_Survivor_{name}.png");
+    let user_stats = format!("{OUTPUT}C{canvas_code}_Stats_{name}.txt");
 
     let image_file = image::open(format!("{INPUT}Canvas_{canvas_code}_Initial.png")).unwrap();
     let (img_x, img_y) = (image_file.width(), image_file.height());
@@ -76,6 +78,8 @@ fn main() {
     let mut imged_survivor_pixels = RgbaImage::new(img_x, img_y);
     let vec_queue: Vec<&str> = ctx.trim().split("\n").collect();
     let mut previous_pix_color = Rgba([0; 4]);
+    let mut previous_pix_survivor_color = Rgba([0; 4]);
+
     let Stats {
         mut pixels,
         mut undo,
@@ -89,6 +93,7 @@ fn main() {
         let [date, rand_hash, x, y, color_index, action] = splited[..] else {
             continue;
         };
+
         let digest_format = [date, x, y, color_index, &user_key].join(",");
         let digested = digest(digest_format.clone());
 
@@ -97,46 +102,40 @@ fn main() {
             imged_survivor_pixels.put_pixel(x, y, Rgba([0; 4]));
             continue;
         }
+
         let indexed: usize = color_index.parse().unwrap();
         let in_color = &palette_indexed[indexed];
         let rgba = Rgba([in_color[1], in_color[2], in_color[3], 255]);
 
-        if !action.contains("undo") {
-            imged_survivor_pixels.put_pixel(x, y, rgba);
-        }
-
         if action.contains("undo") {
-            pix_place.pop();
             pixels -= 1;
             undo += 1;
-            if pix_th[..].contains(&pixels) {
-                pix_place.pop();
-            }
             imged_placed_pixels.put_pixel(x, y, previous_pix_color);
+            imged_survivor_pixels.put_pixel(x, y, previous_pix_survivor_color);
             continue;
         }
 
         pixels += 1;
         previous_pix_color = *imged_placed_pixels.get_pixel(x, y);
-        if !action.contains("undo") {
-            imged_placed_pixels.put_pixel(x, y, rgba);
-        }
+        imged_placed_pixels.put_pixel(x, y, rgba);
+        previous_pix_survivor_color = *imged_survivor_pixels.get_pixel(x, y);
+        imged_survivor_pixels.put_pixel(x, y, rgba);
         if pix_th.iter().any(|x| x == &pixels) {
-            pix_place.push(format!("{pixels}: {x}\t{y}\t{color_index}\n"));
+            pix_place.push(format!("{pixels}:\t\t{x}\t{y}\t{color_index}\n"));
         }
     }
     survivor = imged_survivor_pixels
         .pixels()
-        .filter(|x| x.0[3] > 0)
+        .filter(|x| x.0[3] > 100)
         .count() as u32;
     for s in pix_place {
         full_string.push_str(&s);
     }
-    imged_placed_pixels.save(name_img).unwrap();
-    imged_survivor_pixels.save(name_img_survivor).unwrap();
+    imged_placed_pixels.save(pix_img).unwrap();
+    imged_survivor_pixels.save(pix_img_survivor).unwrap();
     let make_string = format!(
-        "Users: {}\nPixels: {}\nSurvivor: {}\nUndo: {}\n{}",
+        "Users: {}\nPixels: {}\nSurvivor: {}\nUndo: {}\n\nPix place:\tX\tY\tColor Index\n{}",
         name, pixels, survivor, undo, full_string
     );
-    fs::write(output_stats, make_string).unwrap();
+    fs::write(user_stats, make_string).unwrap();
 }
