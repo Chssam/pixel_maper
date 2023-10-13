@@ -1,4 +1,0 @@
-Users: Sammy
-Pixels: 32480
-Survivor: 26223
-Undo: 265
