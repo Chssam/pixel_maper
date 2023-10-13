@@ -1,9 +1,11 @@
 # pixel_maper
 Placemap for pxls.space
 
-Warn: Survivor Pixels Still Not Accurate, It Still Count Undo Pixels
+Warn: Survivor pixels is not accurate, It will not count as survived even thought is undo from other placer.
 
-Simple As This, For Now... Maybe Little Too Much Boiler Code.
+It will be less than actual survived pixels.
+
+Simple as this, for now... maybe little too much boiler code.
 
 No optimize done.
 
@@ -19,7 +21,6 @@ Futures (Maybe):
 ```
 1. Animation for each pixels you place + delay per frame
 2. Placemap With Only Undo
-3. Pixels Survived?
 ```
 Instruction
 
@@ -28,10 +29,10 @@ Instruction
 
 ```
 Settings(
-    user_key: "",      <--- User canvas key
+    user_key: "",      <--- https://pxls.space/profile?action=data
     canvas_code: 71,   <--- The canvas
     name: "Name"       <--- Any name
-    pix_th: [100]      <--- Broken
+    pix_th: [100]      <--- Any number
 )
 ```
 
@@ -42,7 +43,7 @@ LOG: pixels_c71.sanit.log.tar.xz
 IMAGE: Canvas_71_Initial.png
 PALETTE: palette_c71.txt | Got From Clueless => /palette => Paint.Net
 ```
-After finished process, 2 items added in "output" folder, Placemap and Stats.
+After finished process, 3 items added in "output" folder, Placemap (survivor & pixels placed) and Stats.
 
 Time To Finish ~40s
 
