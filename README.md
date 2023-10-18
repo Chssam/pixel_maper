@@ -1,4 +1,4 @@
-# pxls-placemaper
+# [pxls-placemaper](https://github.com/Chssam/pixel_maper/tree/main/pxls-placemaper#pxls-placemaper)
 Placemap for pxls.space
 
 No optimize done.
