@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use sha256::digest;
 use std::{
     fs::{self, File},
-    io::prelude::*,
+    io::prelude::*, collections::HashMap,
 };
 use xz2::read::XzDecoder;
 
@@ -15,8 +15,8 @@ IMAGE: Canvas_71_Initial.png
 PALETTE: palette_c71.txt | Got From Clueless => /palette => Paint.Net
 */
 
-const INPUT: &str = "./input/";
-const OUTPUT: &str = "./output/";
+const IN: &str = "./input/";
+const OUT: &str = "./output/";
 
 #[derive(Debug, Deserialize, Serialize)]
 struct Settings {
@@ -24,13 +24,6 @@ struct Settings {
     canvas_code: u32,
     name: String,
     pix_th: Vec<u32>,
-}
-
-#[derive(Default)]
-struct Stats {
-    pixels: u32,
-    undo: u32,
-    survivor: u32,
 }
 
 fn main() {
@@ -43,13 +36,14 @@ fn main() {
         pix_th,
     } = ron::de::from_reader(open_settings).unwrap();
 
-    let xz_file = format!("{INPUT}pixels_c{canvas_code}.sanit.log.tar.xz");
-    let palette_file = format!("{INPUT}palette_c{canvas_code}.txt");
-    let pix_img = format!("{OUTPUT}C{canvas_code}_Placemap_{name}.png");
-    let pix_img_survivor = format!("{OUTPUT}C{canvas_code}_Placemap_Survivor_{name}.png");
-    let user_stats = format!("{OUTPUT}C{canvas_code}_Stats_{name}.txt");
+    let xz_file = format!("{IN}pixels_c{canvas_code}.sanit.log.tar.xz");
+    let palette_file = format!("{IN}palette_c{canvas_code}.txt");
+    let pix_img_placed = format!("{OUT}C{canvas_code}_Placemap_{name}.png");
+    let pix_img_undo = format!("{OUT}C{canvas_code}_Placemap_Undo_{name}.png");
+    let pix_img_survivor = format!("{OUT}C{canvas_code}_Placemap_Survivor_{name}.png");
+    let user_stats = format!("{OUT}C{canvas_code}_Stats_{name}.txt");
 
-    let image_file = image::open(format!("{INPUT}Canvas_{canvas_code}_Initial.png")).unwrap();
+    let image_file = image::open(format!("{IN}Canvas_{canvas_code}_Initial.png")).unwrap();
     let (img_x, img_y) = (image_file.width(), image_file.height());
 
     // Decode ".xz" File
@@ -74,19 +68,18 @@ fn main() {
     }
 
     // Filter User | Build Image
-    let mut imged_placed_pixels = RgbaImage::new(img_x, img_y);
-    let mut imged_survivor_pixels = RgbaImage::new(img_x, img_y);
+    let mut img_placed = RgbaImage::new(img_x, img_y);
+    let mut img_undo = RgbaImage::new(img_x, img_y);
+    let mut img_survivor = RgbaImage::new(img_x, img_y);
     let vec_queue: Vec<&str> = ctx.trim().split("\n").collect();
-    let mut previous_pix_color = Rgba([0; 4]);
+    let mut old_pix = Rgba([0; 4]);
+    let mut hold_pix = Rgba([0; 4]);
     let mut previous_pix_survivor_color = Rgba([0; 4]);
 
-    let Stats {
-        mut pixels,
-        mut undo,
-        mut survivor,
-    } = Stats::default();
-    let mut pix_place: Vec<String> = Vec::new();
-    let mut full_string = String::new();
+    let mut pixels = 0;
+    let mut undo = 0;
+    let mut pix_place = String::new();
+    let mut old_survivor_pix: HashMap<(u32, u32), Rgba<u8>> = HashMap::new();
 
     for value in vec_queue {
         let splited: Vec<&str> = value.split("\t").collect();
@@ -99,7 +92,16 @@ fn main() {
 
         let (x, y) = (x.parse().unwrap(), y.parse().unwrap());
         if digested.encode_utf16().ne(rand_hash.encode_utf16()) {
-            imged_survivor_pixels.put_pixel(x, y, Rgba([0; 4]));
+            if action.contains("undo") {
+                let Some(old_survivor) = old_survivor_pix.remove(&(x, y)) else {
+                    continue;
+                };
+                img_survivor.put_pixel(x, y, old_survivor);
+                continue;
+            }
+            let old_survivor = img_survivor.get_pixel(x, y);
+            old_survivor_pix.insert((x, y), *old_survivor);
+            img_survivor.put_pixel(x, y, Rgba([0; 4]));
             continue;
         }
 
@@ -110,32 +112,31 @@ fn main() {
         if action.contains("undo") {
             pixels -= 1;
             undo += 1;
-            imged_placed_pixels.put_pixel(x, y, previous_pix_color);
-            imged_survivor_pixels.put_pixel(x, y, previous_pix_survivor_color);
+            img_placed.put_pixel(x, y, old_pix);
+            img_survivor.put_pixel(x, y, previous_pix_survivor_color);
+            img_undo.put_pixel(x, y, hold_pix);
             continue;
         }
 
         pixels += 1;
-        previous_pix_color = *imged_placed_pixels.get_pixel(x, y);
-        imged_placed_pixels.put_pixel(x, y, rgba);
-        previous_pix_survivor_color = *imged_survivor_pixels.get_pixel(x, y);
-        imged_survivor_pixels.put_pixel(x, y, rgba);
+        hold_pix = rgba;
+        old_pix = *img_placed.get_pixel(x, y);
+        img_placed.put_pixel(x, y, rgba);
+        previous_pix_survivor_color = *img_survivor.get_pixel(x, y);
+        img_survivor.put_pixel(x, y, rgba);
         if pix_th.iter().any(|x| x == &pixels) {
-            pix_place.push(format!("{pixels}:\t\t{x}\t{y}\t{color_index}\n"));
+            pix_place.push_str(&format!("{pixels}\t\t{x}\t{y}\t{color_index}\n"));
         }
     }
-    survivor = imged_survivor_pixels
-        .pixels()
-        .filter(|x| x.0[3] > 100)
-        .count() as u32;
-    for s in pix_place {
-        full_string.push_str(&s);
-    }
-    imged_placed_pixels.save(pix_img).unwrap();
-    imged_survivor_pixels.save(pix_img_survivor).unwrap();
+    let survived = img_survivor.pixels().filter(|x| x.0[3] == 255).count();
+    let diff_pos_place = img_placed.pixels().filter(|x| x.0[3] == 255).count();
+    let diff_pos_undo = img_undo.pixels().filter(|x| x.0[3] == 255).count();
+    img_placed.save(pix_img_placed).unwrap();
+    img_undo.save(pix_img_undo).unwrap();
+    img_survivor.save(pix_img_survivor).unwrap();
     let make_string = format!(
-        "Users: {}\nPixels: {}\nSurvivor: {}\nUndo: {}\n\nPix place:\tX\tY\tColor Index\n{}",
-        name, pixels, survivor, undo, full_string
+        "Users: {}\nPixels: {}\nSurvivor: {}\nUndo: {}\n\nDifferent Position\nPlace: {}\nUndo: {}\n\nPix place\tX\tY\tIndex\n{}",
+        name, pixels, survived, undo, diff_pos_place, diff_pos_undo, pix_place
     );
     fs::write(user_stats, make_string).unwrap();
 }
