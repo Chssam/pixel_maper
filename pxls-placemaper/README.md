@@ -14,9 +14,19 @@ Actual Pixel
 Undo Pixel
 Survived Pixel
 ```
+Coming Soon:
+```
+1. Self replaced pixel count
+2. Times of color used + Top
+```
 Futures (Maybe):
 ```
 1. Animation for each pixels you place + delay per frame
+
+Separate
+Global Stats + Some no meaning info
+1. Most Active Pixel
+2. ???
 ```
 Instruction
 
