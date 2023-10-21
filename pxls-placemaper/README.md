@@ -17,6 +17,10 @@ Input file items can be found on:
 + [Logs](https://pxls.space/extra/logs/)
 + Clueless (The Discord Bot) with commands "/palette"
 
+The main folder should look like this
+
+<https://github.com/Chssam/pixel_maper/blob/main/sources/pxls-placemaper%20outlook.png>
+
 Cover
 - V0.1.1 - Use txt as palette
 - V0.2.0 - Use json as palette (Which include name)
