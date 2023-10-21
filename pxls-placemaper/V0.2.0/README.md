@@ -20,7 +20,7 @@ File name in "input" folder
 Ex: Canvas Code = 73
 LOG: pixels_c73.sanit.log.tar.xz
 IMAGE: Canvas_73_Initial.png
-PALETTE: palette_c71.json | Got From Clueless => /palette => JSON
+PALETTE: palette_c73.json | Got From Clueless => /palette => JSON
 ```
 
 Time To Finish Roughly ~1m.
