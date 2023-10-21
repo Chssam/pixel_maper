@@ -1,6 +1,3 @@
-# pxls-placemaper
-Placemap for pxls.space.
-
 Features:
 ```
 1. User Stats:
