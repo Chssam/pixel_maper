@@ -190,7 +190,7 @@ fn main() {
         .map(|(rank, (a, b))| format!("{}\t{}\t{}\n", rank + 1, b, stored_color_name[*a as usize]))
         .collect();
     let make_string = format!(
-        "Users: {}\nPixels: {}\nSurvivor: {}\nUndo: {}\nReplace: {}\n\nDifferent Position\nPlace: {}\nUndo: {}\n\nTop Color:\nPlace\tUsed\n{}\tColor\n\nPix place\tX\tY\tIndex\n{}",
+        "Users: {}\nPixels: {}\nSurvivor: {}\nUndo: {}\nReplace: {}\n\nDifferent Position\nPlace: {}\nUndo: {}\n\nTop Color:\nPlace\tUsed\tColor\n{}\n\nPix place\tX\tY\tIndex\n{}",
         name, pixels, survived, undo, replaced, diff_pos_place, diff_pos_undo, sort_string, pix_place
     );
     fs::write(user_stats, make_string).unwrap();
