@@ -170,7 +170,7 @@ fn main() {
         previous_pix_survivor_color = *img_survivor.get_pixel(x, y);
         img_survivor.put_pixel(x, y, rgba);
         if pix_th.iter().any(|x| x == &pixels) {
-            pix_place.push_str(&format!("{pixels}\t\t{x}\t{y}\t{color_index}\n"));
+            pix_place.push_str(&format!("{pixels}\t\t{x}\t{y}\t{}\n", stored_color_name[indexed]));
         }
     }
 
@@ -187,10 +187,10 @@ fn main() {
     let sort_string: String = sort_color
         .iter()
         .enumerate()
-        .map(|(rank, (a, b))| format!("{}\t{}\t{}\n", rank + 1, stored_color_name[*a as usize], b))
+        .map(|(rank, (a, b))| format!("{}\t{}\t{}\n", rank + 1, b, stored_color_name[*a as usize]))
         .collect();
     let make_string = format!(
-        "Users: {}\nPixels: {}\nSurvivor: {}\nUndo: {}\nReplace: {}\n\nDifferent Position\nPlace: {}\nUndo: {}\n\nTop Color:\nPlace\tColor\tUsed\n{}\n\nPix place\tX\tY\tIndex\n{}",
+        "Users: {}\nPixels: {}\nSurvivor: {}\nUndo: {}\nReplace: {}\n\nDifferent Position\nPlace: {}\nUndo: {}\n\nTop Color:\nPlace\tUsed\n{}\tColor\n\nPix place\tX\tY\tIndex\n{}",
         name, pixels, survived, undo, replaced, diff_pos_place, diff_pos_undo, sort_string, pix_place
     );
     fs::write(user_stats, make_string).unwrap();
