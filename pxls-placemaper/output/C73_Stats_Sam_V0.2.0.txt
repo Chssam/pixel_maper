@@ -1,0 +1,61 @@
+Users: Sam_V0.2.0
+Pixels: 29775
+Survivor: 27021
+Undo: 4425
+Replace: 770
+
+Different Position
+Place: 29005
+Undo: 4421
+
+Top Color:
+Place	Color	Used
+1	DarkGreen	3024
+2	Black	2289
+3	Forest	2227
+4	White	1870
+5	Orange	1854
+6	Rose	1469
+7	Chocolate	1427
+8	DarkGrey	1351
+9	Green	1304
+10	Rust	1300
+11	Brown	1125
+12	Red	1036
+13	Maroon	982
+14	Yellow	976
+15	Lime	930
+16	Peach	751
+17	Magenta	718
+18	Pink	620
+19	PastelYellow	585
+20	Azure	560
+21	MediumGrey	521
+22	Blue	451
+23	DeepGrey	432
+24	Beige	415
+25	Purple	340
+26	DarkChocolate	298
+27	LightGrey	287
+28	DarkPurple	169
+29	Aqua	159
+30	Mauve	136
+31	Watermelon	83
+32	Navy	59
+33	LightTeal	14
+34	DarkTeal	13
+
+
+Pix place	X	Y	Index
+1		887	334	0
+1		887	335	5
+1		887	334	5
+5		886	262	5
+10		971	202	5
+50		931	434	5
+69		991	410	5
+100		1006	438	5
+1000		880	294	7
+5000		1044	573	7
+10000		501	740	0
+25000		1148	611	0
