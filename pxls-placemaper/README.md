@@ -1,6 +1,9 @@
 # pxls-placemaper
 Placemap for pxls.space.
 
+Next week:
++ Reproduce json palette look up (Currently using Clueless's palette)
+
 Instruction
 ```
 Settings(
