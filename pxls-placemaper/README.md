@@ -1,7 +1,7 @@
 # pxls-placemaper
 Placemap for pxls.space.
 
-Next week:
+Next Time (D27 / D28 | M10):
 + Reproduce json palette look up (Currently using Clueless's palette)
 
 Instruction
@@ -19,6 +19,7 @@ Input file items can be found on:
 + [Canvas](https://wiki.pxls.space/index.php?title=Category:Canvases)
 + [Logs](https://pxls.space/extra/logs/)
 + Clueless (The Discord Bot) with commands "/palette"
++ [Palette](https://pxls.space/extra/palette/dl/palette_12.json) (D27 / D28 | M10)
 
 The main folder should look like this
 
