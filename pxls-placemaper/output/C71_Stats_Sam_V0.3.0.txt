@@ -1,0 +1,59 @@
+Users: Sam_V0.3.0
+Pixels: 32480
+Survivor: 26262
+Undo: 265
+Replace: 2661
+
+Different Position
+Place: 29819
+Undo: 249
+
+Top Color:
+Place	Used	Color
+1	4106	Black
+2	2134	White
+3	1847	Mauve
+4	1784	Purple
+5	1676	Pastel Yellow
+6	1601	Navy
+7	1492	Orange
+8	1390	Azure
+9	1337	Dark Chocolate
+10	1253	Aqua
+11	1134	Dark Purple
+12	1088	Green
+13	1038	Dark Grey
+14	1036	Pink
+15	1016	Red
+16	771	Magenta
+17	755	Yellow
+18	691	Deep Grey
+19	685	Light Teal
+20	667	Light Grey
+21	595	Medium Grey
+22	558	Chocolate
+23	521	Dark Green
+24	454	Lime
+25	436	Blue
+26	415	Forest
+27	406	Rust
+28	382	Brown
+29	337	Beige
+30	280	Rose
+31	224	Peach
+32	159	Dark Teal
+33	111	Maroon
+34	101	Watermelon
+
+
+Pix place	X	Y	Index
+1		1336	308	Black
+5		1332	308	Black
+10		1327	309	Black
+50		1323	334	Black
+69		1336	311	Black
+100		1322	319	Black
+1000		531	560	Purple
+5000		1253	320	Black
+10000		956	1072	Navy
+25000		670	724	Pastel Yellow
