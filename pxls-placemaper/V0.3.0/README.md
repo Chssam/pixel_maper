@@ -23,4 +23,4 @@ IMAGE: canvas_71_initial.png
 PALETTE: palette_12_paintnet.txt
 ```
 
-Time To Finish Roughly ~40s.
+Time To Finish ~40s.
