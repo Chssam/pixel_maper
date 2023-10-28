@@ -34,7 +34,7 @@ fn main() -> anyhow::Result<()> {
     } = ron::de::from_reader(File::open("settings.ron")?)?;
 
     let palette_ctx = fs::read_to_string(format!("{IN}palette_{palette}_paintnet.txt"))?;
-    let mut original_img = image::open(format!("{IN}Canvas_{canvas_code}_Initial.png"))?.into_rgba8();
+    let mut original_img = image::open(format!("{IN}canvas_{canvas_code}_initial.png"))?.into_rgba8();
     original_img.fill(0);
     let (mut palette_indexed, mut stored_color_name) = (Vec::new(), Vec::new());
 
