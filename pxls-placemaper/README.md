@@ -9,7 +9,7 @@ The main folder should look like [this](https://github.com/Chssam/pixel_maper/bl
 
 Warn:
 - Pixel self replaced not accurate (Maybe)
-- Everything just working not accurate
+- Don't hope everything accurate I guess
 
 Cover
 - V0.1.1 - Use txt as palette
