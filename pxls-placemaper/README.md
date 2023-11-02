@@ -8,7 +8,7 @@ For all resources [Pxls Items](https://pxls.space/extra).
 The main folder should look like [this](https://github.com/Chssam/pixel_maper/blob/main/sources/pxls-placemaper%20outlook.png).
 
 Warn:
-- Pixel self replaced not accurate
+- Pixel self replaced not accurate (Maybe)
 - Everything just working not accurate
 
 Cover
