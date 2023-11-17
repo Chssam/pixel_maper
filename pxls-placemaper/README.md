@@ -30,4 +30,5 @@ Additional:
 Futures (Maybe):
 ```
 1. Animation for each pixels you place + delay per frame
+2. Work On Website
 ```
