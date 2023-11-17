@@ -17,6 +17,7 @@ Cover
 - V0.2.0 - slower 20s than V0.1.1
 - V0.3.0 - All items from [Pxls Items](https://pxls.space/extra)
 - V0.3.0 - Same process time as V0.1.1
+- V0.3.1 - Image Name Lookup Changes
 
 Suggest to use the latest, got more features and balance.
 
