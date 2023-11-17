@@ -5,7 +5,9 @@ Input file items can be found on:
 
 For all resources [Pxls Items](https://pxls.space/extra).
 
-The main folder should look like [this](https://github.com/Chssam/pixel_maper/blob/main/sources/pxls-placemaper%20outlook.png).
+The main folder should look like
+
+![this](https://github.com/Chssam/pixel_maper/blob/main/sources/pxls-placemaper%20outlook.png)
 
 Warn:
 - Pixel self replaced not accurate (Maybe)
@@ -17,9 +19,13 @@ Cover
 - V0.2.0 - slower 20s than V0.1.1
 - V0.3.0 - All items from [Pxls Items](https://pxls.space/extra)
 - V0.3.0 - Same process time as V0.1.1
-- V0.3.1 - Image Name Lookup Changes
+- V0.Latest - Image Name Lookup Changes
 
-Suggest to use the latest, got more features and balance.
+Suggest to use the latest, got more features and bug fixes.
+
+Additional:
+- Only tested or after C71
+- Somehow C74 logs String Broken
 
 Futures (Maybe):
 ```
