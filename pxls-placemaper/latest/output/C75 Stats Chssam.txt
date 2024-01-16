@@ -49,13 +49,13 @@ Place	Used	Percent	Color
 
 
 Place	X	Y	Index
-1		988	508	White
-5		999	395	White
-10		1105	208	Black
-50		1090	492	White
-69		1106	503	White
-100		1148	560	White
-1000		1192	259	Black
-5000		1146	410	Pink
-10000		1363	492	Aqua
-25000		1140	348	Navy
+1	988	508	White
+5	999	395	White
+10	1105	208	Black
+50	1090	492	White
+69	1106	503	White
+100	1148	560	White
+1000	1192	259	Black
+5000	1146	410	Pink
+10000	1363	492	Aqua
+25000	1140	348	Navy
