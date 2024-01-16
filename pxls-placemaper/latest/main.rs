@@ -133,7 +133,7 @@ fn main() -> anyhow::Result<()> {
         img_survivor.put_pixel(x, y, rgba);
         if pix_th.iter().any(|x| x == &pixels) {
             pix_place.push(format!(
-                "{pixels}\t\t{x}\t{y}\t{}",
+                "{pixels}\t{x}\t{y}\t{}",
                 stored_color_name[indexed]
             ));
         }
