@@ -18,7 +18,7 @@ Survived Pixel
 File name in "input" folder
 ```
 Ex: Canvas Code = 75
-LOG: pixels_c73.sanit.log.tar.xz
+LOG: pixels_c75.sanit.log.tar.xz
 IMAGE: canvas-75-initial.png
 PALETTE: palette_12_paintnet.txt
 ```
