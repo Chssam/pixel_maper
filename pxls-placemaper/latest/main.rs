@@ -157,10 +157,10 @@ fn main() -> anyhow::Result<()> {
         .enumerate()
         .map(|(rank, (a, b))| {
             format!(
-                "{}\t{}\t{:2}\t{}\n",
+                "{}\t{}\t{:.4}\t{}\n",
                 rank + 1,
                 b,
-                *b as f32 / pixels as f32,
+                *b as f32 / pixels as f32 * 100.0,
                 stored_color_name[*a as usize]
             )
         })
