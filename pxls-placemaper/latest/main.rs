@@ -10,6 +10,7 @@ use xz2::read::XzDecoder;
 
 const IN: &str = "./input/";
 const OUT: &str = "./output/";
+const VERSION: &str = "0.3.3";
 
 #[derive(Debug, Deserialize)]
 struct Settings {
@@ -138,9 +139,8 @@ fn main() -> anyhow::Result<()> {
         }
     }
 
-    let format_name = |naming: &str| -> String {
-        format!("{OUT}C{canvas_code} {naming} {name}.png")
-    };
+    let format_name =
+        |naming: &str| -> String { format!("{OUT}C{canvas_code} {naming} {name}.png") };
 
     img_placed.save(format_name("Placemap"))?;
     img_undo.save(format_name("Placemap Undo"))?;
@@ -155,11 +155,19 @@ fn main() -> anyhow::Result<()> {
     let sort_string: String = sort_color
         .iter()
         .enumerate()
-        .map(|(rank, (a, b))| format!("{}\t{}\t{}\n", rank + 1, b, stored_color_name[*a as usize]))
+        .map(|(rank, (a, b))| {
+            format!(
+                "{}\t{}\t{:2}\t{}\n",
+                rank + 1,
+                b,
+                *b as f32 / pixels as f32,
+                stored_color_name[*a as usize]
+            )
+        })
         .collect();
     let make_string = format!(
-        "Users: {}\nPixels: {}\nSurvivor: {}\nUndo: {}\nReplace: {}\n\nDifferent Position\nPlace: {}\nUndo: {}\n\nTop Color:\nPlace\tUsed\tColor\n{}\n\nPlace\tX\tY\tIndex\n{}",
-        name, pixels, survived, undo, replaced, diff_pos_place, diff_pos_undo, sort_string, pix_place.join("\n")
+        "Version: {}\nCanvas: {}\nUsers: {}\nPixels: {}\nSurvivor: {}\nUndo: {}\nReplace: {}\n\nDifferent Position\nPlace: {}\nUndo: {}\n\nTop Color:\nPlace\tUsed\tPercent\tColor\n{}\n\nPlace\tX\tY\tIndex\n{}",
+        VERSION, canvas_code, name, pixels, survived, undo, replaced, diff_pos_place, diff_pos_undo, sort_string, pix_place.join("\n")
     );
     fs::write(format!("{OUT}C{canvas_code} Stats {name}.txt"), make_string)?;
 
