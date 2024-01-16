@@ -34,7 +34,8 @@ fn main() -> anyhow::Result<()> {
     } = ron::de::from_reader(File::open("settings.ron")?)?;
 
     let palette_ctx = fs::read_to_string(format!("{IN}palette_{palette}_paintnet.txt"))?;
-    let mut original_img = image::open(format!("{IN}canvas-{canvas_code}-initial.png"))?.into_rgba8();
+    let mut original_img =
+        image::open(format!("{IN}canvas-{canvas_code}-initial.png"))?.into_rgba8();
     original_img.fill(0);
     let (mut palette_indexed, mut stored_color_name) = (Vec::new(), Vec::new());
     let mut logs = String::new();
@@ -56,19 +57,16 @@ fn main() -> anyhow::Result<()> {
         stored_color_name.push(color_name.trim());
     }
 
-    let mut img_placed = original_img.clone();
-    let mut img_undo = original_img.clone();
-    let mut img_survivor = original_img;
+    let (mut img_placed, mut img_undo, mut img_survivor) =
+        (original_img.clone(), original_img.clone(), original_img);
     let logs_queue: Vec<&str> = logs.trim().split("\n").collect();
     let mut old_pix = Rgba([0; 4]);
     let mut active_pix = 0;
     let mut previous_pix_survivor_color = Rgba([0; 4]);
 
-    let mut pixels = 0;
-    let mut undo = 0;
-    let mut replaced = 0;
+    let [mut pixels, mut undo, mut replaced] = [0; 3];
     let mut color_use: HashMap<i8, i32> = HashMap::new();
-    let mut pix_place = String::new();
+    let mut pix_place: Vec<String> = Vec::new();
     let mut old_survivor_pix: HashMap<(u32, u32), Rgba<u8>> = HashMap::new();
 
     for lines in logs_queue {
@@ -99,6 +97,9 @@ fn main() -> anyhow::Result<()> {
         let rgba = palette_indexed[indexed];
 
         if action.contains("undo") {
+            if pix_th.iter().any(|x| x == &pixels) {
+                pix_place.pop();
+            }
             pixels -= 1;
             undo += 1;
             if old_pix.0[3] == 255 {
@@ -130,16 +131,20 @@ fn main() -> anyhow::Result<()> {
         previous_pix_survivor_color = *img_survivor.get_pixel(x, y);
         img_survivor.put_pixel(x, y, rgba);
         if pix_th.iter().any(|x| x == &pixels) {
-            pix_place.push_str(&format!(
-                "{pixels}\t\t{x}\t{y}\t{}\n",
+            pix_place.push(format!(
+                "{pixels}\t\t{x}\t{y}\t{}",
                 stored_color_name[indexed]
             ));
         }
     }
 
-    img_placed.save(format!("{OUT}C{canvas_code}_Placemap_{name}.png"))?;
-    img_undo.save(format!("{OUT}C{canvas_code}_Placemap_Undo_{name}.png"))?;
-    img_survivor.save(format!("{OUT}C{canvas_code}_Placemap_Survivor_{name}.png"))?;
+    let format_name = |naming: &str| -> String {
+        format!("{OUT}C{canvas_code} {naming} {name}.png")
+    };
+
+    img_placed.save(format_name("Placemap"))?;
+    img_undo.save(format_name("Placemap Undo"))?;
+    img_survivor.save(format_name("Placemap Survivor"))?;
 
     let survived = count_pixel(img_survivor);
     let diff_pos_place = count_pixel(img_placed);
@@ -153,10 +158,10 @@ fn main() -> anyhow::Result<()> {
         .map(|(rank, (a, b))| format!("{}\t{}\t{}\n", rank + 1, b, stored_color_name[*a as usize]))
         .collect();
     let make_string = format!(
-        "Users: {}\nPixels: {}\nSurvivor: {}\nUndo: {}\nReplace: {}\n\nDifferent Position\nPlace: {}\nUndo: {}\n\nTop Color:\nPlace\tUsed\tColor\n{}\n\nPix place\tX\tY\tIndex\n{}",
-        name, pixels, survived, undo, replaced, diff_pos_place, diff_pos_undo, sort_string, pix_place
+        "Users: {}\nPixels: {}\nSurvivor: {}\nUndo: {}\nReplace: {}\n\nDifferent Position\nPlace: {}\nUndo: {}\n\nTop Color:\nPlace\tUsed\tColor\n{}\n\nPlace\tX\tY\tIndex\n{}",
+        name, pixels, survived, undo, replaced, diff_pos_place, diff_pos_undo, sort_string, pix_place.join("\n")
     );
-    fs::write(format!("{OUT}C{canvas_code}_Stats_{name}.txt"), make_string)?;
+    fs::write(format!("{OUT}C{canvas_code} Stats {name}.txt"), make_string)?;
 
     Ok(())
 }
