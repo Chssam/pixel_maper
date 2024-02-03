@@ -23,7 +23,7 @@ Cover
 - V0.Latest - Abandoned the name, follow up with the latest number instead
 - V0.4 - With GIF Placemap!
 
-Suggest to use the latest, got more features and bug fixes.
+Suggest to use the latest, got more features and ~~bug~~ fixes.
 
 Additional:
 - Only tested or after C71
