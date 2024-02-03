@@ -14,7 +14,7 @@ use xz2::read::XzDecoder;
 
 const IN: &str = "./input/";
 const OUT: &str = "./output/";
-const VERSION: &str = "0.4.0";
+const VERSION: &str = "0.4.1";
 
 #[derive(Debug, Deserialize)]
 struct Settings {
@@ -23,7 +23,8 @@ struct Settings {
     canvas_code: u32,
     palette_code: u32,
     pix_th: Vec<u32>,
-    pix_frame: u32,
+    pix_per_frame: u32,
+    frame_delay: u64,
 }
 
 struct PaletteInfo {
@@ -43,7 +44,8 @@ fn main() -> anyhow::Result<()> {
         canvas_code,
         palette_code: palette,
         pix_th,
-        pix_frame,
+        pix_per_frame: pix_frame,
+        frame_delay,
     } = ron::de::from_reader(File::open("settings.ron").expect("Settings.ron not exist"))
         .expect("Invalid .ron format");
 
@@ -181,7 +183,7 @@ fn main() -> anyhow::Result<()> {
                 img_placed.clone(),
                 0,
                 0,
-                Delay::from_saturating_duration(Duration::from_millis(100)),
+                Delay::from_saturating_duration(Duration::from_millis(frame_delay)),
             ));
         }
         if pix_th.contains(&pixels) {
@@ -193,7 +195,7 @@ fn main() -> anyhow::Result<()> {
         img_placed.clone(),
         0,
         0,
-        Delay::from_saturating_duration(Duration::from_millis(1000)),
+        Delay::from_saturating_duration(Duration::from_millis(2000)),
     ));
 
     let format_name = |naming: &str| -> String { format!("{OUT}C{canvas_code} {name} {naming}") };
