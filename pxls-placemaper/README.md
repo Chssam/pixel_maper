@@ -20,15 +20,17 @@ Cover
 - V0.3.0 - All items from [Pxls Items](https://pxls.space/extra)
 - V0.3.0 - Same process time as V0.1.1
 - V0.Latest - Image Name Lookup Changes
+- V0.Latest - Abandoned the name, follow up with the latest number instead
+- V0.4 - With GIF Placemap!
 
 Suggest to use the latest, got more features and bug fixes.
 
 Additional:
 - Only tested or after C71
 - Somehow C74 logs String Broken
+- V0.1, 2, 3 tested in debug mode, so it might look like it took longer than V0.4 (Tested in Release Mode) to complete.
 
 Futures (Maybe):
 ```
-1. Animation for each pixels you place + delay per frame
-2. Work On Website
+1. Work On Website
 ```
