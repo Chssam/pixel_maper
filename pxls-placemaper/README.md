@@ -9,6 +9,8 @@ The main folder should look like
 
 ![this](https://github.com/Chssam/pixel_maper/blob/main/sources/pxls-placemaper%20outlook.png)
 
+Change any value in **settings.ron** file
+
 Warn:
 - Pixel self replaced not accurate (Maybe)
 - Don't hope everything accurate I guess
