@@ -25,3 +25,4 @@ PALETTE: palette_13_paintnet.txt
 ```
 
 Time To Finish ~60s. (Release Mode)
+Less pixel per frame, More time to encode GIF.
