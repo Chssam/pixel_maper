@@ -4,5 +4,6 @@ Settings(
     canvas_code: 76,
     palette_code: 13,
     pix_th: [1, 5, 10, 50, 69, 100, 1000, 5000, 10000, 25000, 49000],
-    pix_frame: 100
+    pix_per_frame: 100,
+    frame_delay: 100
 )
