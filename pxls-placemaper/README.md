@@ -32,7 +32,3 @@ Additional:
 - Somehow C74 logs String Broken
 - V0.1, 2, 3 tested in debug mode, so it might look like it took longer than V0.4 (Tested in Release Mode) to complete.
 
-Futures (Maybe):
-```
-1. Work On Website
-```
