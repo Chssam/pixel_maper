@@ -1,5 +1,5 @@
 # pxls-placemaper
-Placemap for pxls.space.
+Placemap for [pxls.space](https://pxls.space/).
 
 If you haven't already try Rust. Install Rust and Cargo.
 
