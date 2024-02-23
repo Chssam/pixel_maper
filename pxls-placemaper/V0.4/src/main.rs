@@ -61,9 +61,10 @@ fn main() -> anyhow::Result<()> {
             if hexy.is_empty() || color_name.is_empty() {
                 continue;
             }
-            let hexed = hex::decode(hexy.trim().trim_start_matches("#")).expect("Invalid Hex code");
+            let hexed = hex::decode(hexy.trim()).expect("Invalid Hex code");
             let [a, r, g, b] = hexed[..] else {
-                panic!("Unvalid RGB");
+                println!("Invalid ARGB");
+                continue;
             };
             collect_pal.push(PaletteInfo {
                 rgba: Rgba([r, g, b, a]),
@@ -108,7 +109,7 @@ fn main() -> anyhow::Result<()> {
     let [mut pixels, mut undo, mut replaced] = [0; 3];
     let mut color_use: HashMap<i8, i32> = HashMap::new();
     let mut pix_place: Vec<String> = Vec::new();
-    let mut old_survivor_pix: HashMap<(u32, u32), Rgba<u8>> = HashMap::new();
+    let mut vec_survivor_pix: HashMap<(u32, u32), Rgba<u8>> = HashMap::new();
 
     for lines in logs_queue.drain(..) {
         let splited: Vec<&str> = lines.split("\t").collect();
@@ -123,14 +124,14 @@ fn main() -> anyhow::Result<()> {
 
         if digested.encode_utf16().ne(rand_hash.encode_utf16()) {
             if action.contains("undo") {
-                let Some(old_survivor) = old_survivor_pix.remove(&(x, y)) else {
+                let Some(old_survivor) = vec_survivor_pix.remove(&(x, y)) else {
                     continue;
                 };
                 img_survivor.put_pixel(x, y, old_survivor);
                 continue;
             }
             let old_survivor = img_survivor.get_pixel(x, y);
-            old_survivor_pix.insert((x, y), *old_survivor);
+            vec_survivor_pix.insert((x, y), *old_survivor);
             img_survivor.put_pixel(x, y, Rgba([0; 4]));
             continue;
         }
