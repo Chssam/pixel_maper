@@ -3,10 +3,15 @@ name = "pxls-placemaper"
 version = "0.4.1"
 edition = "2021"
 authors = ["Chssam"]
+description = "Placemap generator for pxls.space"
+keywords = ["pxls.space"]
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/Chssam/pixel_maper/tree/main/pxls-placemaper#pxls-placemaper"
+publish = false
 
 [dependencies]
 xz2 = "0.1"
-sha256 = "1.4"
+sha256 = "1.5"
 hex = "0.4"
 ron = "0.8"
 anyhow = "1.0"
