@@ -20,7 +20,7 @@ The main folder should look like
 
 Warn:
 - Not accurate, maybe
-- There's tiny difference between Clueless's placemap vs this one (Your choise to believe which one better)
+- There's tiny difference between Clueless's placemap vs this one
 
 Cover
 - V0.1.1 - Use txt as palette
