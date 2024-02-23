@@ -1,19 +1,26 @@
 # pxls-placemaper
 Placemap for pxls.space.
 
-Input file items can be found on:
+If you haven't already try Rust. Install Rust and Cargo.
 
-For all resources [Pxls Items](https://pxls.space/extra).
+1. Find a place for your code in folder
+2. Type 'cargo init'
+3. Copy V0.4 Code or File
+4. Create 'input' and 'output' folder
 
 The main folder should look like
 
 ![this](https://github.com/Chssam/pixel_maper/blob/main/sources/pxls-placemaper%20outlook.png)
 
-Change any value in **settings.ron** file
+5. 'input' items can be found on [Pxls Items](https://pxls.space/extra)
+6. Change any value in **settings.ron** file
+7. Type 'cargo run --release', or 'cargo run' (Which is slow, very very slow, debug mode)
+8. Items will be generated in 'output' folder
+9. Your STATS!
 
 Warn:
-- Pixel self replaced not accurate (Maybe)
-- Don't hope everything accurate I guess
+- Not accurate, maybe
+- There's tiny difference between Clueless's placemap vs this one (Your choise to believe which one better)
 
 Cover
 - V0.1.1 - Use txt as palette
@@ -28,7 +35,7 @@ Cover
 Suggest to use the latest, got more features and ~~bug~~ fixes.
 
 Additional:
-- Only tested or after C71
-- Somehow C74 logs String Broken
-- V0.1, 2, 3 tested in debug mode, so it might look like it took longer than V0.4 (Tested in Release Mode) to complete.
+- Only tested after C71
+- Somehow can't read C74 logs 
+- V0.1, 2, 3 tested in debug mode, while V0.4 tested in release mode, basically V0.4 slower because more feature.
 
