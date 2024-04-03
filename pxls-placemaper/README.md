@@ -5,7 +5,7 @@ If you haven't already try Rust. Install Rust and Cargo.
 
 1. Find a place for your code in folder
 2. Type 'cargo init'
-3. Copy V0.4 Code or File
+3. Copy V0.X Code or File
 4. Create 'input' and 'output' folder
 
 The main folder should look like
@@ -31,6 +31,7 @@ Cover
 - V0.Latest - Image Name Lookup Changes
 - V0.Latest - Abandoned the name, follow up with the latest number instead
 - V0.4 - With GIF Placemap!
+- V0.5 - "canvas_code" in setting.ron file now accept String
 
 Suggest to use the latest, got more features and ~~bug~~ fixes.
 
