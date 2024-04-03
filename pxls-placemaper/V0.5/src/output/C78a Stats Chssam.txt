@@ -1,0 +1,53 @@
+Version: 0.4.1
+Canvas: 78a
+Users: Chssam
+Pixels: 1698
+Survivor: 1600
+Undo: 61
+Replace: 16
+
+Different Position
+Place: 1650
+Undo: 61
+
+Top Color:
+Place	Used	Percent	Color
+1	1071	63.0742	White
+2	91	5.3592	Dark Teal
+3	76	4.4759	Rose
+4	73	4.2992	Aqua
+5	60	3.5336	Black
+6	48	2.8269	Azure
+7	35	2.0612	Dark Grey
+8	35	2.0612	Brown
+9	34	2.0024	Dark Green
+10	33	1.9435	Lime
+11	20	1.1779	Watermelon
+12	17	1.0012	Red
+13	16	0.9423	Pastel Yellow
+14	12	0.7067	Magenta
+15	12	0.7067	Light Grey
+16	10	0.5889	Dark Chocolate
+17	9	0.5300	Purple
+18	8	0.4711	Pink
+19	8	0.4711	Rust
+20	8	0.4711	Maroon
+21	7	0.4122	Chocolate
+22	4	0.2356	Orange
+23	3	0.1767	Yellow
+24	2	0.1178	Green
+25	2	0.1178	Medium Grey
+26	1	0.0589	Blue
+27	1	0.0589	Mauve
+28	1	0.0589	Navy
+29	1	0.0589	Dark Purple
+
+
+Place	X	Y	Color
+1	128	119	Dark Teal
+5	124	120	Dark Teal
+10	117	120	Dark Teal
+50	116	118	Azure
+69	117	115	Aqua
+100	113	81	Pastel Yellow
+1000	109	190	White
