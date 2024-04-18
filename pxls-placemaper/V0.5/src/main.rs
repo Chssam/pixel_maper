@@ -8,13 +8,13 @@ use std::{
     collections::HashMap,
     fs::{self, File},
     io::prelude::*,
+    thread,
     time::{Duration, SystemTime},
 };
 use xz2::read::XzDecoder;
 
 const IN: &str = "./input/";
 const OUT: &str = "./output/";
-const VERSION: &str = "0.4.1";
 
 #[derive(Debug, Deserialize)]
 struct Settings {
@@ -48,6 +48,7 @@ fn main() -> anyhow::Result<()> {
         frame_delay,
     } = ron::de::from_reader(File::open("settings.ron").expect("Settings.ron not exist"))
         .expect("Invalid .ron format");
+    println!("Complete reading Setting.");
 
     let pal_vec = {
         let mut collect_pal = Vec::with_capacity(40);
@@ -74,6 +75,7 @@ fn main() -> anyhow::Result<()> {
         collect_pal.shrink_to_fit();
         collect_pal
     };
+    println!("Complete reading Palette {}.", palette);
 
     let (mut img_placed, mut img_undo, mut img_survivor, mut img_gif) = {
         let (width, height) =
@@ -91,8 +93,8 @@ fn main() -> anyhow::Result<()> {
             )],
         )
     };
-    // let mut img_frames: Vec<RgbaImage> = Vec::new();
 
+    println!("Reading Canvas {} logs.", canvas_code);
     let mut logs = String::new();
     XzDecoder::new(
         File::open(format!("{IN}pixels_c{canvas_code}.sanit.log.tar.xz"))
@@ -100,6 +102,7 @@ fn main() -> anyhow::Result<()> {
     )
     .read_to_string(&mut logs)
     .expect("Log file problems");
+    println!("Complete Canvas {} logs ", canvas_code);
 
     let mut logs_queue: Vec<&str> = logs.trim().split("\n").collect();
     let mut old_pix = Rgba([0; 4]);
@@ -111,6 +114,7 @@ fn main() -> anyhow::Result<()> {
     let mut pix_place: Vec<String> = Vec::new();
     let mut vec_survivor_pix: HashMap<(u32, u32), Rgba<u8>> = HashMap::new();
 
+    println!("Processing logs...");
     for lines in logs_queue.drain(..) {
         let splited: Vec<&str> = lines.split("\t").collect();
         let [date, rand_hash, x, y, color_index, action] = splited[..] else {
@@ -191,6 +195,8 @@ fn main() -> anyhow::Result<()> {
             pix_place.push(format!("{pixels}\t{x}\t{y}\t{}", pal_vec[indexed].name));
         }
     }
+    println!("Processed logs.");
+
 
     img_gif.push(Frame::from_parts(
         img_placed.clone(),
@@ -199,16 +205,21 @@ fn main() -> anyhow::Result<()> {
         Delay::from_saturating_duration(Duration::from_millis(2000)),
     ));
 
+    println!("Saving placemap...");
     let format_name = |naming: &str| -> String { format!("{OUT}C{canvas_code} {name} {naming}") };
 
     img_placed.save(format_name("Placemap.png"))?;
     img_undo.save(format_name("Placemap Undo.png"))?;
     img_survivor.save(format_name("Placemap Survivor.png"))?;
+    println!("Saved placemap.");
+    println!("Encoding animated placemap.");
     let gif_file = File::create(format_name("Placemap Gif.gif"))?;
     let mut encode_gif = GifEncoder::new(gif_file);
     encode_gif.set_repeat(Repeat::Infinite)?;
     encode_gif.encode_frames(img_gif.into_iter())?;
+    println!("Encoded animated placemap.");
 
+    println!("Creating user stats...");
     let survived = count_pixel(img_survivor);
     let diff_pos_place = count_pixel(img_placed);
     let diff_pos_undo = count_pixel(img_undo);
@@ -229,13 +240,17 @@ fn main() -> anyhow::Result<()> {
         })
         .collect();
     let make_string = format!(
-        "Version: {}\nCanvas: {}\nUsers: {}\nPixels: {}\nSurvivor: {}\nUndo: {}\nReplace: {}\n\nDifferent Position\nPlace: {}\nUndo: {}\n\nTop Color:\nPlace\tUsed\tPercent\tColor\n{}\n\nPlace\tX\tY\tColor\n{}",
-        VERSION, canvas_code, name, pixels, survived, undo, replaced, diff_pos_place, diff_pos_undo, sort_string, pix_place.join("\n")
+        "Canvas: {}\nUsers: {}\nPixels: {}\nSurvivor: {}\nUndo: {}\nReplace: {}\n\nDifferent Position\nPlace: {}\nUndo: {}\n\nTop Color:\nPlace\tUsed\tPercent\tColor\n{}\n\nPlace\tX\tY\tColor\n{}",
+        canvas_code, name, pixels, survived, undo, replaced, diff_pos_place, diff_pos_undo, sort_string, pix_place.join("\n")
     );
     fs::write(format!("{OUT}C{canvas_code} Stats {name}.txt"), make_string)?;
+    println!("Saved user stats.");
 
     let time_taken = begin_time.elapsed()?;
     println!("Time Taken: {:?}", time_taken);
 
+    println!("Completed Placemap");
+    println!("Closing In 20s");
+    thread::sleep(Duration::from_secs(20));
     Ok(())
 }
