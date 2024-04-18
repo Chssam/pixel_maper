@@ -1,22 +1,17 @@
 # pxls-placemaper
 Placemap for [pxls.space](https://pxls.space/).
 
-If you haven't already try Rust. Install Rust and Cargo.
+1. Find a place for your application in folder
 
-1. Find a place for your code in folder
-2. Type 'cargo init'
-3. Copy V0.X Code or File
-4. Create 'input' and 'output' folder
+The folder should look like
 
-The main folder should look like
+![image](https://github.com/Chssam/pixel_maper/assets/81403469/87b62070-373c-444c-804d-e6bbbe9dcf01)
 
-![this](https://github.com/Chssam/pixel_maper/blob/main/sources/pxls-placemaper%20outlook.png)
-
-5. 'input' items can be found on [Pxls Items](https://pxls.space/extra)
-6. Change any value in **settings.ron** file
-7. Type 'cargo run --release', or 'cargo run' (Which is slow, very very slow, debug mode)
-8. Items will be generated in 'output' folder
-9. Your STATS!
+2. **input** items can be found on [Pxls Items](https://pxls.space/extra)
+3. Change any value in **settings.ron** file
+4. Execute pxls-placemaper
+5. Items will be generated in 'output' folder
+6. Your STATS!
 
 Warn:
 - Not accurate, maybe
@@ -32,6 +27,7 @@ Cover
 - V0.Latest - Abandoned the name, follow up with the latest number instead
 - V0.4 - With GIF Placemap!
 - V0.5 - "canvas_code" in setting.ron file now accept String
+- V0.5.1 - Some changes forgotten, now with executable application
 
 Suggest to use the latest, got more features and ~~bug~~ fixes.
 
