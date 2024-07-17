@@ -1,0 +1,9 @@
+Settings(
+    user: "guantousam@lemmy.world",
+    output_file: "Chssam",
+    log_file_name: "pixels-patched.txt",
+    pix_th: [1, 5, 10, 50, 69, 100, 1000],
+    pix_per_frame: 100,
+    frame_delay: 100,
+    img_size: (1000, 500)
+)
