@@ -1,0 +1,24 @@
+[package]
+name = "lemmy-placemaper"
+version = "0.6.0"
+edition = "2021"
+authors = ["Chssam"]
+description = "Placemap generator for lemmy place"
+keywords = ["lemmy", "pxls.space"]
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/Chssam/pixel_maper/tree/main"
+publish = false
+
+[dependencies]
+hex = "0.4"
+ron = "0.8"
+anyhow = "1.0"
+
+[dependencies.image]
+version = "0.25"
+default-features = false
+features = ["png", "gif"]
+
+[dependencies.serde]
+version = "1.0"
+features = ["derive"]
