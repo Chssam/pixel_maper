@@ -55,11 +55,7 @@ fn main() -> anyhow::Result<()> {
 		process_place_map(logs, &settings, &mut image_collection, &mut output_info)?;
 	}
 
-	save_img_collection(
-		&mut image_collection,
-		output_dir,
-		&settings.output_file
-	)?;
+	save_img_collection(&mut image_collection, output_dir, &settings.output_file)?;
 
 	create_user_stats(output_info, settings, output_dir)?;
 
@@ -73,10 +69,7 @@ fn create_user_stats(
 	full_set_setting: Settings,
 	output_dir: &Path,
 ) -> anyhow::Result<()> {
-	let Settings {
-		output_file,
-		..
-	} = full_set_setting;
+	let Settings { output_file, .. } = full_set_setting;
 	let OutputInfo {
 		pixels,
 		undo,
@@ -130,8 +123,7 @@ fn save_img_collection(
 	));
 
 	println!("Saving placemap...");
-	let format_name =
-		|naming: &str| -> PathBuf { output_dir.join(format!("{name} {naming}")) };
+	let format_name = |naming: &str| -> PathBuf { output_dir.join(format!("{name} {naming}")) };
 
 	image_collection.place.save(format_name("Placemap.png"))?;
 	image_collection
@@ -197,19 +189,6 @@ fn process_place_map(
 		let hexed = format!("{}FF", color_hex.trim());
 		let (x, y) = (x.parse()?, y.parse()?);
 
-		let rgba = match hex::decode(&hexed) {
-			Ok(value) => {
-				let [r, g, b, a] = value[..] else {
-					continue;
-				};
-				Rgba([r, g, b, a])
-			},
-			Err(err) => {
-				println!("Invalid Hex: {:?} : {}", err, hexed);
-				continue;
-			},
-		};
-
 		if !user.contains(&user_mail.to_owned()) {
 			if action.contains("undo") {
 				let Some(old_survivor) = vec_survivor_pix.remove(&(x, y)) else {
@@ -237,6 +216,14 @@ fn process_place_map(
 			img_undo.put_pixel(x, y, active_pix);
 			continue;
 		}
+
+		let rgba = {
+			let de_hexed = hex::decode(&hexed).unwrap();
+			let [r, g, b, a] = de_hexed[..] else {
+				continue;
+			};
+			Rgba([r, g, b, a])
+		};
 
 		*pixels += 1;
 		active_pix = rgba;
