@@ -156,7 +156,7 @@ fn save_img_collection(
 	println!("Encoding animated placemap.");
 	let gif_file = File::create(format_name("Placemap Gif.gif"))?;
 	let mut encode_gif = GifEncoder::new(gif_file);
-	encode_gif.set_repeat(Repeat::Infinite)?;
+	encode_gif.set_repeat(Repeat::Finite(1))?;
 	encode_gif.encode_frames(image_collection.gif.clone().into_iter())?;
 	println!("Encoded animated placemap.");
 
