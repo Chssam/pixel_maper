@@ -1,0 +1,62 @@
+Canvas: 80
+Users: Chssam
+Pixels: 60200
+Survivor: 55339
+Undo: 299
+Replace: 1789
+
+Different Position
+Place: 57508
+Undo: 291
+
+Top Color:
+Place	Used	Percent	Color
+1	5967	9.9120	Blue
+2	5699	9.4668	Purple
+3	4830	8.0233	Dark Chocolate
+4	4165	6.9186	Light Grey
+5	4032	6.6977	White
+6	3946	6.5548	Navy
+7	3628	6.0266	Black
+8	3131	5.2010	Azure
+9	2987	4.9618	Beige
+10	2052	3.4086	Dark Grey
+11	1836	3.0498	Dark Purple
+12	1708	2.8372	Aqua
+13	1693	2.8123	Brown
+14	1629	2.7060	Medium Grey
+15	1568	2.6047	Peach
+16	1546	2.5681	Mauve
+17	1368	2.2724	Chocolate
+18	1106	1.8372	Orange
+19	1103	1.8322	Deep Grey
+20	1041	1.7292	Magenta
+21	877	1.4568	Yellow
+22	833	1.3837	Pink
+23	726	1.2060	Lime
+24	656	1.0897	Light Teal
+25	638	1.0598	Dark Teal
+26	376	0.6246	Rust
+27	270	0.4485	Maroon
+28	265	0.4402	Rose
+29	245	0.4070	Pastel Yellow
+30	166	0.2757	Green
+31	72	0.1196	Red
+32	33	0.0548	Dark Green
+33	5	0.0083	Watermelon
+34	3	0.0050	Forest
+
+
+Place	X	Y	Color
+1	491	599	Navy
+5	492	601	Dark Purple
+10	493	603	Dark Purple
+50	538	616	Dark Purple
+69	571	606	Dark Purple
+100	600	639	Dark Purple
+1000	761	928	Dark Purple
+5000	611	848	White
+10000	728	1011	Yellow
+25000	625	594	Purple
+50000	891	1140	Beige
+60000	959	749	Brown
