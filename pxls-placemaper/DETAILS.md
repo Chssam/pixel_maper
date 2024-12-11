@@ -13,14 +13,21 @@ Pixel (th)
 Actual Pixel
 Undo Pixel
 Survived Pixel
+GIF Of Placing
 ```
 
 File name in "input" folder
 ```
-Ex: Canvas Code = 75
-LOG: pixels_c75.sanit.log.tar.xz
-IMAGE: canvas-75-initial.png
-PALETTE: palette_12_paintnet.txt
+Ex: Canvas Code = 78a
+LOG: pixels_c78a.sanit.log.tar.xz
+IMAGE: canvas-78a-initial.png
+PALETTE: palette_13_paintnet.txt
 ```
 
-Time To Finish ~40s.
+Time To Finish ~700ms in Release Mode for C78a
+
+Time to generate depend on
++ Pixels placed
++ Number of pixels per frame
+
+Less pixel per frame, More time to encode GIF.
