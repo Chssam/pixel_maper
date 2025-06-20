@@ -1,7 +1,9 @@
+use anyhow::anyhow;
 use image::{
 	codecs::gif::{GifEncoder, Repeat},
 	*,
 };
+use log::{error, info};
 use sha256::digest;
 use std::{
 	collections::HashMap,
@@ -9,7 +11,6 @@ use std::{
 	fs::{self, File},
 	io::prelude::*,
 	path::{Path, PathBuf},
-	thread,
 	time::{Duration, Instant},
 };
 use xz2::read::XzDecoder;
@@ -17,29 +18,42 @@ use xz2::read::XzDecoder;
 mod structure;
 use structure::*;
 
-fn main() -> anyhow::Result<()> {
+fn main() {
+	let begin_time = Instant::now();
+
+	if let Err(err) = stable_check_run() {
+		error!("Unable to process: {:?}", err);
+	};
+
+	let time_taken = begin_time.elapsed();
+	info!(
+		"Completed Placemap\nTime Taken: {:?}\nPress 'Enter' will terminate",
+		time_taken
+	);
+
+	let mut buf = String::new();
+	let _ = std::io::stdin().read_line(&mut buf);
+}
+
+fn stable_check_run() -> Result<(), anyhow::Error> {
 	let input_dir = Path::new("input");
 	let output_dir = Path::new("output");
 
-	let begin_time = Instant::now();
-	let settings = read_setting();
+	let settings = read_setting()?;
 
-	let pal_vec = palette_info(input_dir, settings.palette_code);
+	let pal_vec = PaletteVec::new(input_dir, settings.palette_code)?;
 
-	let mut image_collection = generate_intial_img(input_dir, &settings.canvas_code);
+	let mut image_collection = generate_intial_img(input_dir, &settings.canvas_code)?;
 
-	let mut output_info = OutputInfo::default();
+	let mut output_info = OutputInfo::new(pal_vec.to_color_used());
 
-	{
-		let logs = extract_log(input_dir, &settings.canvas_code);
-		process_place_map(
-			logs,
-			&settings,
-			&pal_vec,
-			&mut image_collection,
-			&mut output_info,
-		)?;
-	}
+	process_place_map(
+		input_dir,
+		&pal_vec,
+		&settings,
+		&mut image_collection,
+		&mut output_info,
+	)?;
 
 	save_img_collection(
 		&mut image_collection,
@@ -50,14 +64,6 @@ fn main() -> anyhow::Result<()> {
 
 	create_user_stats(output_info, settings, output_dir, &pal_vec)?;
 
-	let time_taken = begin_time.elapsed();
-
-	println!(
-		"Completed Placemap\nTime Taken: {:?}\nAuto close in 10s",
-		time_taken
-	);
-
-	thread::sleep(Duration::from_secs(10));
 	Ok(())
 }
 
@@ -65,7 +71,7 @@ fn create_user_stats(
 	output_info: OutputInfo,
 	full_set_setting: Settings,
 	output_dir: &Path,
-	pal_vec: &[PaletteInfo],
+	pal_vec: &PaletteVec,
 ) -> anyhow::Result<()> {
 	let Settings {
 		name, canvas_code, ..
@@ -81,7 +87,7 @@ fn create_user_stats(
 		pix_place,
 	} = output_info;
 
-	println!("Creating user stats...");
+	info!("Creating user stats...");
 
 	let mut sort_color: Vec<(i8, i32)> = color_used.0.into_iter().collect();
 	sort_color.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap());
@@ -97,34 +103,44 @@ fn create_user_stats(
 					rank + 1,
 					b,
 					*b as f32 / pixels as f32 * 100.0,
-					pal_vec[*a as usize].name
+					pal_vec.0[*a as usize].name
 				);
 				v
 			});
 
 	let make_string = format!(
-        "Canvas: {}\nUsers: {}\nPixels: {}\nSurvivor: {}\nUndo: {}\nReplace: {}\n\nDifferent Position\nPlace: {}\nUndo: {}\n\nTop Color:\nPlace\tUsed\tPercent\tColor\n{}\n\nPlace\tX\tY\tColor\n{}",
-        canvas_code, name, pixels, survived, undo, replaced, diff_pos_place, diff_pos_undo, sort_string, pix_place.join("\n")
-    );
+		"Canvas: {}\nUsers: {}\nPixels: {}\nSurvivor: {}\nUndo: {}\nReplace: {}\n\nDifferent Position\nPlace: {}\nUndo: {}\n\nTop Color:\nPlace\tUsed\tPercent\tColor\n{}\n\nPlace\tX\tY\tColor\n{}",
+		canvas_code,
+		name,
+		pixels,
+		survived,
+		undo,
+		replaced,
+		diff_pos_place,
+		diff_pos_undo,
+		sort_string,
+		pix_place.join("\n")
+	);
 
 	let stats_file_name = output_dir.join(format!("C{canvas_code} Stats {name}.txt"));
 	fs::write(stats_file_name, make_string)?;
 
-	println!("Saved user stats.");
+	info!("Saved user stats.");
 	Ok(())
 }
 
-fn extract_log(input_dir: &Path, canvas_code: &str) -> String {
+fn extract_log(input_dir: &Path, canvas_code: &str) -> Result<String, anyhow::Error> {
 	let mut logs = String::new();
-	println!("Reading Canvas {} logs.", canvas_code);
+	info!("Reading Canvas {} logs.", canvas_code);
 
-	let xz_logged = input_dir.join(format!("pixels_c{canvas_code}.sanit.log.tar.xz"));
-	XzDecoder::new(File::open(xz_logged).expect("Log file not exist"))
+	let xz_logged_path = input_dir.join(format!("pixels_c{canvas_code}.sanit.log.tar.xz"));
+	let open_file = File::open(xz_logged_path).map_err(|_err| anyhow!("Log file not exist"))?;
+	XzDecoder::new(open_file)
 		.read_to_string(&mut logs)
-		.expect("Log file problems");
+		.map_err(|err| anyhow!("Failed while reading Log file: {:?}", err))?;
 
-	println!("Complete Canvas {} logs ", canvas_code);
-	logs
+	info!("Complete Canvas {} logs ", canvas_code);
+	Ok(logs)
 }
 
 fn save_img_collection(
@@ -140,7 +156,7 @@ fn save_img_collection(
 		Delay::from_saturating_duration(Duration::from_millis(3000)),
 	));
 
-	println!("Saving placemap...");
+	info!("Saving placemap...");
 	let format_name =
 		|naming: &str| -> PathBuf { output_dir.join(format!("C{canvas_code} {name} {naming}")) };
 
@@ -151,34 +167,36 @@ fn save_img_collection(
 	image_collection
 		.survivor
 		.save(format_name("Placemap Survivor.png"))?;
-	println!("Saved placemap.");
+	info!("Saved placemap.");
 
-	println!("Encoding animated placemap.");
+	info!("Encoding animated placemap.");
 	let gif_file = File::create(format_name("Placemap Gif.gif"))?;
 	let mut encode_gif = GifEncoder::new(gif_file);
 	encode_gif.set_repeat(Repeat::Finite(1))?;
 	encode_gif.encode_frames(image_collection.gif.clone().into_iter())?;
-	println!("Encoded animated placemap.");
+	info!("Encoded animated placemap.");
 
 	Ok(())
 }
 
 fn process_place_map(
-	logs: String,
-	settings: &Settings,
-	pal_vec: &[PaletteInfo],
-	image_collection: &mut ImageCollection,
-	output_info: &mut OutputInfo,
-) -> anyhow::Result<()> {
-	let Settings {
+	input_dir: &Path,
+	pal_vec: &PaletteVec,
+	Settings {
 		user_key,
 		pix_th,
 		pix_per_frame,
 		frame_delay,
+		canvas_code,
 		..
-	} = settings;
-
-	let OutputInfo {
+	}: &Settings,
+	ImageCollection {
+		place: img_placed,
+		undo: img_undo,
+		survivor: img_survivor,
+		gif: img_gif,
+	}: &mut ImageCollection,
+	OutputInfo {
 		pixels,
 		undo,
 		replaced,
@@ -187,33 +205,24 @@ fn process_place_map(
 		diff_pos_undo,
 		color_used,
 		pix_place,
-	} = output_info;
-
-	let ImageCollection {
-		place: img_placed,
-		undo: img_undo,
-		survivor: img_survivor,
-		gif: img_gif,
-	} = image_collection;
-
-	let mut logs_queue: Vec<&str> = logs.trim().split('\n').collect();
+	}: &mut OutputInfo,
+) -> anyhow::Result<()> {
+	let logs = extract_log(input_dir, canvas_code)?;
+	let logs_queue = logs.trim().split('\n');
 
 	let mut active_pix = 0;
-
 	let mut old_pix = Rgba([0; 4]);
-
 	let mut prev_lived_color = Rgba([0; 4]);
+
+	// xy : color
 	let mut vec_survivor_pix: HashMap<(u32, u32), Rgba<u8>> = HashMap::new();
 
-	for (n, _) in pal_vec.iter().enumerate() {
-		color_used.0.insert(n as i8, 0);
-	}
+	info!("Processing logs...");
 
-	println!("Processing logs...");
-
-	for lines in logs_queue.drain(..) {
+	for lines in logs_queue.into_iter() {
 		let splited: Vec<&str> = lines.split('\t').collect();
 		let [date, rand_hash, x, y, color_index, action] = splited[..] else {
+			error!("Invalid: {:?}", splited);
 			continue;
 		};
 
@@ -238,7 +247,7 @@ fn process_place_map(
 		}
 
 		let indexed: usize = color_index.parse()?;
-		let pal_info = &pal_vec[indexed];
+		let pal_info = &pal_vec.0[indexed];
 		let rgba = pal_info.rgba;
 
 		if action.contains("undo") {
@@ -251,7 +260,7 @@ fn process_place_map(
 
 			img_placed.put_pixel(x, y, old_pix);
 			img_survivor.put_pixel(x, y, prev_lived_color);
-			img_undo.put_pixel(x, y, pal_vec[active_pix as usize].rgba);
+			img_undo.put_pixel(x, y, pal_vec.0[active_pix as usize].rgba);
 			continue;
 		}
 
@@ -282,29 +291,32 @@ fn process_place_map(
 		}
 	}
 
-	println!("Processed logs.");
+	info!("Processed logs.");
 
-	let count_pixel = |imaged: &ImageBuffer<Rgba<u8>, Vec<u8>>| -> usize {
+	let count_visible_pixel = |imaged: &ImageBuffer<Rgba<u8>, Vec<u8>>| -> usize {
 		imaged.pixels().filter(|x| x.0[3] == 255).count()
 	};
 
-	*survived = count_pixel(img_survivor);
-	*diff_pos_place = count_pixel(img_placed);
-	*diff_pos_undo = count_pixel(img_undo);
+	*survived = count_visible_pixel(img_survivor);
+	*diff_pos_place = count_visible_pixel(img_placed);
+	*diff_pos_undo = count_visible_pixel(img_undo);
 
 	Ok(())
 }
 
-fn generate_intial_img(input_dir: &Path, canvas_code: &str) -> ImageCollection {
+fn generate_intial_img(
+	input_dir: &Path,
+	canvas_code: &str,
+) -> Result<ImageCollection, anyhow::Error> {
 	let img_path = input_dir.join(format!("canvas-{canvas_code}-initial.png"));
 	let (width, height) = image::open(img_path)
-		.expect("Image Path Exist")
+		.map_err(|err| anyhow!("Image Path Exist: {:?}", err))?
 		.dimensions();
 	let copy_intial = RgbaImage::new(width, height);
 
-	println!("Intial Image ready");
+	info!("Intial Image ready");
 
-	ImageCollection {
+	let img_collection = ImageCollection {
 		place: copy_intial.clone(),
 		undo: copy_intial.clone(),
 		survivor: copy_intial.clone(),
@@ -314,42 +326,14 @@ fn generate_intial_img(input_dir: &Path, canvas_code: &str) -> ImageCollection {
 			0,
 			Delay::from_saturating_duration(Duration::from_millis(500)),
 		)],
-	}
+	};
+	Ok(img_collection)
 }
 
-fn read_setting() -> Settings {
+fn read_setting() -> Result<Settings, anyhow::Error> {
+	let open_file = File::open("settings.ron").map_err(|_err| anyhow!("Settings.ron not exist"))?;
 	let settings =
-		ron::de::from_reader(File::open("settings.ron").expect("Settings.ron not exist"))
-			.expect("Invalid .ron format");
-	println!("Complete reading Setting.");
-	settings
-}
-
-fn palette_info(input_dir: &Path, palette_code: u8) -> Vec<PaletteInfo> {
-	let mut collect_pal = Vec::with_capacity(40);
-	let palette_path = input_dir.join(format!("palette_{palette_code}_paintnet.txt"));
-	let palette_ctx = fs::read_to_string(palette_path).expect("Palette not exist");
-
-	for value in palette_ctx.lines() {
-		let splited: Vec<&str> = value.trim().split(';').collect();
-		let [hexy, color_name] = splited[..] else {
-			continue;
-		};
-		if hexy.is_empty() || color_name.is_empty() {
-			continue;
-		}
-		let hexed = hex::decode(hexy.trim()).expect("Invalid Hex code");
-		let [a, r, g, b] = hexed[..] else {
-			println!("Invalid ARGB");
-			continue;
-		};
-		collect_pal.push(PaletteInfo {
-			rgba: Rgba([r, g, b, a]),
-			name: color_name.trim().to_owned(),
-		});
-	}
-
-	collect_pal.shrink_to_fit();
-	println!("Complete reading Palette {}.", palette_code);
-	collect_pal
+		ron::de::from_reader(open_file).map_err(|_err| anyhow!("Invalid .ron format"))?;
+	info!("Complete reading Setting.");
+	Ok(settings)
 }
