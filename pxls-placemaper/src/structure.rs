@@ -1,6 +1,8 @@
+use anyhow::anyhow;
 use image::*;
+use log::error;
 use serde::Deserialize;
-use std::collections::HashMap;
+use std::{borrow::Cow, collections::HashMap, fs, path::Path};
 
 #[derive(Debug, Deserialize)]
 pub struct Settings {
@@ -15,9 +17,56 @@ pub struct Settings {
 
 pub struct PaletteInfo {
 	pub rgba: Rgba<u8>,
-	pub name: String,
+	pub name: Cow<'static, str>,
 }
 
+pub struct PaletteVec(pub Vec<PaletteInfo>);
+
+impl Default for PaletteVec {
+	fn default() -> Self {
+		Self(Vec::with_capacity(40))
+	}
+}
+
+impl PaletteVec {
+	pub fn new(input_dir: &Path, palette_code: u8) -> Result<PaletteVec, anyhow::Error> {
+		let mut collect_pal = PaletteVec::default();
+		let palette_path = input_dir.join(format!("palette_{palette_code}_paintnet.txt"));
+		let palette_ctx = fs::read_to_string(palette_path)?;
+
+		for value in palette_ctx.lines() {
+			let splited: Vec<&str> = value.trim().split(';').collect();
+			let [hexy, color_name] = splited[..] else {
+				continue;
+			};
+			if hexy.is_empty() || color_name.is_empty() {
+				continue;
+			}
+			let hexed =
+				hex::decode(hexy.trim()).map_err(|err| anyhow!("Hex code fail: {:?}", err))?;
+			let [a, r, g, b] = hexed[..] else {
+				error!("Invalid ARGB");
+				continue;
+			};
+			let rgba = Rgba([r, g, b, a]);
+			let name = Cow::from(color_name.trim().to_owned());
+			collect_pal.0.push(PaletteInfo { rgba, name });
+		}
+
+		collect_pal.0.shrink_to_fit();
+		println!("Complete reading Palette {}.", palette_code);
+		Ok(collect_pal)
+	}
+	pub fn to_color_used(&self) -> ColorUsed {
+		let mut color_used = ColorUsed::default();
+		for (n, _) in self.0.iter().enumerate() {
+			color_used.0.insert(n as i8, 0);
+		}
+		color_used
+	}
+}
+
+///
 pub struct ImageCollection {
 	pub place: ImageBuffer<Rgba<u8>, Vec<u8>>,
 	pub undo: ImageBuffer<Rgba<u8>, Vec<u8>>,
@@ -35,6 +84,15 @@ pub struct OutputInfo {
 	pub diff_pos_undo: usize,
 	pub color_used: ColorUsed,
 	pub pix_place: Vec<String>,
+}
+
+impl OutputInfo {
+	pub fn new(color_used: ColorUsed) -> Self {
+		Self {
+			color_used,
+			..Default::default()
+		}
+	}
 }
 
 #[derive(Default)]
