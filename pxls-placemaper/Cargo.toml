@@ -1,6 +1,6 @@
 [package]
 name = "pxls-placemaper"
-version = "0.8.1"
+version = "0.8.2"
 edition = "2024"
 authors = ["Chssam"]
 description = "Placemap generator for pxls.space"
