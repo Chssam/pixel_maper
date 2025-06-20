@@ -19,6 +19,7 @@ mod structure;
 use structure::*;
 
 fn main() {
+	env_logger::init();
 	let begin_time = Instant::now();
 
 	if let Err(err) = stable_check_run() {
