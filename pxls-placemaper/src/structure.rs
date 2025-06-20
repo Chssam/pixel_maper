@@ -1,6 +1,6 @@
 use anyhow::anyhow;
 use image::*;
-use log::error;
+use log::{error, info};
 use serde::Deserialize;
 use std::{borrow::Cow, collections::HashMap, fs, path::Path};
 
@@ -54,7 +54,7 @@ impl PaletteVec {
 		}
 
 		collect_pal.0.shrink_to_fit();
-		println!("Complete reading Palette {}.", palette_code);
+		info!("Complete reading Palette {}.", palette_code);
 		Ok(collect_pal)
 	}
 	pub fn to_color_used(&self) -> ColorUsed {
