@@ -1,4 +1,5 @@
 use anyhow::anyhow;
+use env_logger::Env;
 use image::{
 	codecs::gif::{GifEncoder, Repeat},
 	*,
@@ -19,7 +20,12 @@ mod structure;
 use structure::*;
 
 fn main() {
-	env_logger::init();
+	let env = Env::default()
+		.filter_or("MY_LOG_LEVEL", "trace")
+		.write_style_or("MY_LOG_STYLE", "always");
+
+	env_logger::init_from_env(env);
+
 	let begin_time = Instant::now();
 
 	if let Err(err) = stable_check_run() {
