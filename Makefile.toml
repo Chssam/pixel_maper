@@ -1,6 +1,5 @@
 [env]
 CARGO_MAKE_EXTEND_WORKSPACE_MAKEFILE = true
-CARGO_MAKE_WORKSPACE_SKIP_MEMBERS = ["bevy_addon", "build_in"]
 
 [config]
 default_to_workspace = false
@@ -56,3 +55,4 @@ script = "xcopy lemmy backups\\lemmy\\ /s /q"
 
 [tasks.backup]
 dependencies = ["new_backup", "backup_cargo", "backup_pxls", "backup_lemmy"]
+
