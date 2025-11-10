@@ -1,0 +1,58 @@
+[env]
+CARGO_MAKE_EXTEND_WORKSPACE_MAKEFILE = true
+CARGO_MAKE_WORKSPACE_SKIP_MEMBERS = ["bevy_addon", "build_in"]
+
+[config]
+default_to_workspace = false
+
+
+[tasks.testing_this]
+script = "echo hello"
+
+# Pxls
+[tasks.pxls]
+command = "cargo"
+args = ["run", "--bin", "pxls-placemaper"]
+
+[tasks.pxls_release]
+command = "cargo"
+args = ["run", "--release", "--bin", "pxls-placemaper"]
+
+[tasks.pxls_build_release]
+command = "cargo"
+args = ["build", "--release", "--bin", "pxls-placemaper"]
+
+
+# Lemmy
+[tasks.lemmy]
+command = "cargo"
+args = ["run", "--bin", "lemmy-placemaper"]
+
+[tasks.lemmy_release]
+command = "cargo"
+args = ["run", "--release", "--bin", "lemmy-placemaper"]
+
+[tasks.lemmy_build_release]
+command = "cargo"
+args = ["build", "--release", "--bin", "lemmy-placemaper"]
+
+
+# Backup Commands
+[tasks.clean_backup]
+script = "rmdir /s /q backups"
+
+[tasks.new_backup]
+script = "mkdir backups"
+
+[tasks.backup_cargo]
+script = "copy Cargo.toml backups\\"
+
+[tasks.backup_pxls]
+script = "xcopy pxls backups\\pxls\\ /s /q"
+
+[tasks.backup_lemmy]
+script = "xcopy lemmy backups\\lemmy\\ /s /q"
+
+
+[tasks.backup]
+dependencies = ["new_backup", "backup_cargo", "backup_pxls", "backup_lemmy"]
