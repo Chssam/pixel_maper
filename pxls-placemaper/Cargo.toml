@@ -1,31 +1,26 @@
 [package]
 name = "pxls-placemaper"
-version = "0.8.2"
-edition = "2024"
-authors = ["Chssam"]
 description = "Placemap generator for pxls.space"
-keywords = ["pxls.space"]
-license = "MIT OR Apache-2.0"
-repository = "https://github.com/Chssam/pixel_maper/tree/main"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+rust-version.workspace = true
 publish = false
 
-# [profile.release]
-# debug = true
 
 [dependencies]
-xz2 = "0.1"
-sha256 = "1.6"
-hex = "0.4"
-ron = "0.10"
-anyhow = "1.0"
-log = "0.4"
-env_logger = "0.11"
+anyhow.workspace = true
+xz2.workspace = true
+hex.workspace = true
+sha256.workspace = true
+env_logger.workspace = true
+image.workspace = true
+gif.workspace = true
+serde.workspace = true
+ron.workspace = true
+log.workspace = true
 
-[dependencies.image]
-version = "0.25"
-default-features = false
-features = ["png", "gif"]
 
-[dependencies.serde]
-version = "1.0"
-features = ["derive"]
+[lints]
+workspace = true

@@ -24,10 +24,14 @@ IMAGE: canvas-78a-initial.png
 PALETTE: palette_13_paintnet.txt
 ```
 
-Time To Finish ~700ms in Release Mode for C78a
+Time To Finish ~439ms in Release Mode for C78a
 
 Time to generate depend on
 + Pixels placed
 + Number of pixels per frame
 
-Less pixel per frame, More time to encode GIF.
+Less pixel per frame, spend more time on cropping each frame.
+
+~400 MB memory usage for C92 with 63000 pixels.
+
+Finish in ~20s with 2520 frame, 636 MB file size. Image size 5248x480.

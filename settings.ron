@@ -1,0 +1,20 @@
+Settings(
+    user_key: "7cf30e770e408c50985b5e74be97c7650e7f2217e1a567b909b7039922493254910d79b851ea44cc18d2399e1db374fb38422f7a684c3a2b1a1f0439f34e3e9e0e7946309774b205e7cc5303c9faa77dc5d3e73b0d935aef7e4b70c54d8965e5d96bc505372e51048c5dd62494a9a58cb3e8627856a4ef4d6320f31f8274645747a2c3a2f20b6ac5250c15496a8406b278a067c838e0b16a38c87f4e763d6d9b5f1bf80cdd6ed5d2af8d63c74a1b374ba1546ffc5817e34d045cf53e9462b6604d5f4f3ac581daffb2afe9bbe96ad70984247f66857c5f38e58a566447a664ad87c02b0c2cdb77f210ca8bc43e679fc4876594494aea9824ed37d15706c9f10a",
+    name: "Chssam",
+    canvas_code: "92",
+    palette_code: 13,
+    pix_th: [1, 5, 10, 50, 69, 100, 1000, 5000, 10000, 25000, 30000, 63000],
+    pix_per_frame: 25,
+    // 1 = 10 ms
+    frame_delay: 4
+)
+
+// Settings(
+//     http: "https://lemmy.world/u/guantousam",
+//     output_file: "C_2025",
+//     log_file_name: "Sorted Database.txt",
+//     pix_th: [1, 5, 10, 50, 69, 100, 1000],
+//     pix_per_frame: 20,
+//     frame_delay: 50,
+//     img_size: (500, 500)
+// )
