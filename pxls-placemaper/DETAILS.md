@@ -34,4 +34,4 @@ Less pixel per frame, spend more time on cropping each frame.
 
 ~400 MB memory usage for C92 with 63000 pixels.
 
-Finish in 20s with 2520 frame, 636 MB file size. Image size 5248x480.
+Finish in ~20s with 2520 frame, 636 MB file size. Image size 5248x480.
