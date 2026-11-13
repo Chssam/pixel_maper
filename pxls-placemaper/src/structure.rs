@@ -1,23 +1,42 @@
-use anyhow::{Result, anyhow};
-use image::{imageops::crop, *};
-use log::{error, info};
-use serde::Deserialize;
 use std::{
 	borrow::Cow,
 	collections::HashMap,
 	fs,
-	path::{Path, PathBuf},
+	path::{
+		Path,
+		PathBuf,
+	},
 };
+
+use anyhow::{
+	Result,
+	anyhow,
+};
+use bevy_derive::{
+	Deref,
+	DerefMut,
+};
+use glam::UVec2;
+use image::{
+	imageops::crop,
+	*,
+};
+use serde::Deserialize;
+use tracing::info;
+
+pub const SETTING_PATH: &str = "settings.ron";
+pub const INPUT_PATH: &str = "input";
+pub const OUTPUT_PATH: &str = "output";
 
 #[derive(Debug, Deserialize)]
 pub struct Settings {
-	pub user_key: String,
-	pub name: String,
-	pub canvas_code: String,
-	pub palette_code: u8,
-	pub pix_th: Vec<u32>,
+	pub user_key:      String,
+	pub name:          String,
+	pub canvas_code:   String,
+	pub palette_code:  u8,
+	pub pix_th:        Vec<u32>,
 	pub pix_per_frame: u32,
-	pub frame_delay: u16,
+	pub frame_delay:   u16,
 }
 
 pub struct PaletteInfo {
@@ -26,46 +45,49 @@ pub struct PaletteInfo {
 }
 
 pub struct PaletteVec {
-	pub info: Vec<PaletteInfo>,
+	pub info:        Vec<PaletteInfo>,
 	pub blank_index: u8,
 }
 
 impl Default for PaletteVec {
 	fn default() -> Self {
 		Self {
-			info: Vec::with_capacity(40),
+			info:        Vec::with_capacity(40),
 			blank_index: 0,
 		}
 	}
 }
 
 impl PaletteVec {
-	pub fn new(input_dir: &Path, palette_code: u8) -> Result<PaletteVec> {
+	pub fn new(palette_code: u8) -> Result<PaletteVec> {
 		let mut pal_vec = PaletteVec::default();
-		let palette_path = input_dir.join(format!("palette_{palette_code}_paintnet.txt"));
+		let palette_path =
+			Path::new(INPUT_PATH).join(format!("palette_{palette_code}_paintnet.txt"));
 		let palette_ctx = fs::read_to_string(palette_path)?;
 
-		for value in palette_ctx.lines() {
-			let splited: Vec<&str> = value.trim().split(';').collect();
-			let [hexy, color_name] = splited[..] else {
-				continue;
-			};
-			if hexy.is_empty() || color_name.is_empty() {
-				continue;
-			}
+		// Skip first line as it is header
+		for (at_line, value) in palette_ctx.lines().enumerate().skip(1) {
+			let (hexy, color_name) = value
+				.split_once(';')
+				.ok_or(anyhow!("Invalid color at line: {}", at_line))?;
+
 			let hexed =
 				hex::decode(hexy.trim()).map_err(|err| anyhow!("Hex code fail: {:?}", err))?;
 			let [a, r, g, b] = hexed[..] else {
-				error!("Invalid ARGB");
-				continue;
+				return Err(anyhow!("Invalid ARGB at line: {}", at_line));
 			};
+
 			let rgba = Rgba([r, g, b, a]);
 			let name = Cow::from(color_name.trim().to_owned());
-			pal_vec.info.push(PaletteInfo { rgba, name });
+			pal_vec.info.push(PaletteInfo {
+				rgba,
+				name,
+			});
 		}
 
 		pal_vec.info.shrink_to_fit();
 		pal_vec.blank_index = pal_vec.info.len() as u8;
+
 		info!("Complete reading Palette {}.", palette_code);
 		Ok(pal_vec)
 	}
@@ -111,26 +133,41 @@ impl PaletteVec {
 }
 
 pub struct ImageCollection {
-	pub place: GrayImage,
-	pub undo: GrayImage,
+	pub place:    GrayImage,
+	pub undo:     GrayImage,
 	pub survivor: GrayImage,
-	pub gif: Vec<GrayImageCropped>,
+	pub gif:      Vec<GrayImageCropped>,
+}
+
+impl ImageCollection {
+	pub fn intial_img(canvas_code: &str, pixel: u8) -> Result<Self> {
+		let img_path = Path::new(INPUT_PATH).join(format!("canvas-{canvas_code}-initial.png"));
+		let (width, height) = image::open(img_path)?.dimensions();
+
+		let img_collection = Self::new_size(width, height, pixel);
+
+		info!("Intial Image ready");
+
+		Ok(img_collection)
+	}
 }
 
 pub struct GrayImageCropped {
 	pub left: u16,
-	pub top: u16,
-	pub img: GrayImage,
+	pub top:  u16,
+	pub img:  GrayImage,
 }
 
 impl GrayImageCropped {
 	pub fn new(left: u16, top: u16, img: GrayImage) -> Self {
-		Self { left, top, img }
+		Self {
+			left,
+			top,
+			img,
+		}
 	}
 
-	pub fn new_pure(img: GrayImage) -> Self {
-		Self::new(0, 0, img)
-	}
+	pub fn new_pure(img: GrayImage) -> Self { Self::new(0, 0, img) }
 
 	pub fn diff_out_self(&mut self, other: &GrayImage, transparent: u8) {
 		let transparent = Luma([transparent]);
@@ -163,31 +200,32 @@ impl ImageCollection {
 
 	pub fn new(intial: GrayImage) -> Self {
 		Self {
-			place: intial.clone(),
-			undo: intial.clone(),
+			place:    intial.clone(),
+			undo:     intial.clone(),
 			survivor: intial.clone(),
-			gif: vec![GrayImageCropped::new_pure(intial)],
+			gif:      vec![GrayImageCropped::new_pure(intial)],
 		}
 	}
 }
 
+#[derive(Deref, DerefMut)]
 pub struct PixelInfoAt {
-	pub at: u32,
-	pub pixel: u8,
-	pub x: u32,
-	pub y: u32,
+	pub at:          u32,
+	pub color_index: u8,
+	#[deref]
+	pub pos:         UVec2,
 }
 
 #[derive(Default)]
 pub struct OutputInfo {
-	pub pixels: u32,
-	pub undo: u32,
-	pub replaced: u32,
-	pub survived: usize,
-	pub diff_pos_place: usize,
-	pub diff_pos_undo: usize,
-	pub color_used: ColorUsed,
-	pub pix_place: Vec<PixelInfoAt>,
+	pub pixels:         u32,
+	pub undo:           u32,
+	pub replaced:       u32,
+	pub survived:       u32,
+	pub diff_pos_place: u32,
+	pub diff_pos_undo:  u32,
+	pub color_used:     ColorUsed,
+	pub pix_place:      Vec<PixelInfoAt>,
 }
 
 impl OutputInfo {
@@ -203,23 +241,17 @@ impl OutputInfo {
 pub struct ColorUsed(pub HashMap<u8, i32>);
 
 impl ColorUsed {
-	pub fn add_used(&mut self, index: &u8) {
-		*self.0.get_mut(index).unwrap() += 1;
-	}
+	pub fn add_used(&mut self, index: &u8) { *self.0.get_mut(index).unwrap() += 1; }
 
-	pub fn sub_used(&mut self, index: &u8) {
-		*self.0.get_mut(index).unwrap() -= 1;
-	}
+	pub fn sub_used(&mut self, index: &u8) { *self.0.get_mut(index).unwrap() -= 1; }
 
-	pub fn to_vec(self) -> Vec<(u8, i32)> {
-		self.0.into_iter().collect::<Vec<_>>()
-	}
+	pub fn to_vec(self) -> Vec<(u8, i32)> { self.0.into_iter().collect::<Vec<_>>() }
 }
 
 pub trait ExtentGrayImage {
 	/// Self, x, y
 	fn crop_in(&mut self, transparent: u8) -> (u16, u16);
-	fn save_in_color(&self, palette: &[(u8, u8, u8)], path: PathBuf) -> Result<()>;
+	fn save_in_color(self, palette: &[(u8, u8, u8)], path: PathBuf) -> Result<()>;
 	// fn diff_out(&mut self, other: &GrayImageCropped, transparent: u8);
 }
 
@@ -229,9 +261,9 @@ impl ExtentGrayImage for GrayImage {
 		let (mut left, mut top) = (0, 0);
 		let (mut right, mut bottom) = (x_dim, y_dim);
 		let transparent = &Luma([transparent]);
-		for x in 0..x_dim {
+		for x in 0 .. x_dim {
 			let mut not_transparent = false;
-			for y in 0..y_dim {
+			for y in 0 .. y_dim {
 				not_transparent = self.get_pixel(x, y) != transparent;
 				left = x;
 				if not_transparent {
@@ -243,9 +275,9 @@ impl ExtentGrayImage for GrayImage {
 			}
 		}
 
-		for y in 0..y_dim {
+		for y in 0 .. y_dim {
 			let mut not_transparent = false;
-			for x in left..x_dim {
+			for x in left .. x_dim {
 				not_transparent = self.get_pixel(x, y) != transparent;
 				top = y;
 				if not_transparent {
@@ -257,10 +289,10 @@ impl ExtentGrayImage for GrayImage {
 			}
 		}
 
-		for x in 0..x_dim {
+		for x in 0 .. x_dim {
 			let mut not_transparent = false;
 			let x = x_dim - x - 1;
-			for y in top..y_dim {
+			for y in top .. y_dim {
 				not_transparent = self.get_pixel(x, y) != transparent;
 				right = x.saturating_add(1);
 				if not_transparent {
@@ -272,10 +304,10 @@ impl ExtentGrayImage for GrayImage {
 			}
 		}
 
-		for y in 0..y_dim {
+		for y in 0 .. y_dim {
 			let mut not_transparent = false;
 			let y = y_dim - y - 1;
-			for x in left..right {
+			for x in left .. right {
 				not_transparent = self.get_pixel(x, y) != transparent;
 				bottom = y.saturating_add(1);
 				if not_transparent {
@@ -295,10 +327,9 @@ impl ExtentGrayImage for GrayImage {
 		(left as u16, top as u16)
 	}
 
-	fn save_in_color(&self, palette: &[(u8, u8, u8)], path: PathBuf) -> Result<()> {
-		let img_colored = self
-			.clone()
-			.expand_palette(palette, Some(palette.len() as u8 - 1));
+	fn save_in_color(self, palette: &[(u8, u8, u8)], path: PathBuf) -> Result<()> {
+		let img_colored = self.expand_palette(palette, Some(palette.len() as u8 - 1));
+
 		img_colored.save(path)?;
 		Ok(())
 	}
