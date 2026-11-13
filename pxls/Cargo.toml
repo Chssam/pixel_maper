@@ -1,0 +1,34 @@
+[package]
+name = "pxls"
+description = "Placemap generator for pxls.space"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+rust-version.workspace = true
+publish = false
+
+
+[dependencies]
+glam.workspace = true
+hex.workspace = true
+bevy_derive.workspace = true
+
+lzma-rust2.workspace = true
+sha256.workspace = true
+
+image.workspace = true
+serde.workspace = true
+
+ron.workspace = true
+gif.workspace = true
+svg.workspace = true
+
+anyhow.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+log.workspace = true
+
+
+[lints]
+workspace = true
