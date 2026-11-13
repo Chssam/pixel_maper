@@ -1,3 +1,7 @@
+# cargo-make
+# cargo install --force cargo-make
+# Link: https://github.com/sagiegurari/cargo-make
+
 [env]
 CARGO_MAKE_EXTEND_WORKSPACE_MAKEFILE = true
 
@@ -5,35 +9,25 @@ CARGO_MAKE_EXTEND_WORKSPACE_MAKEFILE = true
 default_to_workspace = false
 
 
-[tasks.testing_this]
-script = "echo hello"
-
-# Pxls
-[tasks.pxls]
+# Debug runner
+[tasks.run]
 command = "cargo"
 args = ["run", "--bin", "pxls-placemaper"]
 
-[tasks.pxls_release]
+# Build debug exe
+[tasks.build]
+command = "cargo"
+args = ["build", "--bin", "pxls-placemaper"]
+
+# Release runner
+[tasks.release]
 command = "cargo"
 args = ["run", "--release", "--bin", "pxls-placemaper"]
 
-[tasks.pxls_build_release]
+# Build release exe
+[tasks.build_release]
 command = "cargo"
-args = ["build", "--release", "--bin", "pxls-placemaper"]
-
-
-# Lemmy
-[tasks.lemmy]
-command = "cargo"
-args = ["run", "--bin", "lemmy-placemaper"]
-
-[tasks.lemmy_release]
-command = "cargo"
-args = ["run", "--release", "--bin", "lemmy-placemaper"]
-
-[tasks.lemmy_build_release]
-command = "cargo"
-args = ["build", "--release", "--bin", "lemmy-placemaper"]
+args = ["run", "--release", "--bin", "pxls-placemaper"]
 
 
 # Backup Commands
@@ -49,10 +43,5 @@ script = "copy Cargo.toml backups\\"
 [tasks.backup_pxls]
 script = "xcopy pxls backups\\pxls\\ /s /q"
 
-[tasks.backup_lemmy]
-script = "xcopy lemmy backups\\lemmy\\ /s /q"
-
-
 [tasks.backup]
-dependencies = ["new_backup", "backup_cargo", "backup_pxls", "backup_lemmy"]
-
+dependencies = ["new_backup", "backup_cargo", "backup_pxls"]

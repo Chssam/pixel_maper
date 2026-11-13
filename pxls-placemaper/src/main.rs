@@ -1,68 +1,92 @@
-use anyhow::Result;
-use env_logger::Env;
-use gif::{DisposalMethod, Frame, Repeat};
-use image::{GenericImageView as _, GrayImage, Luma, imageops::overlay};
-use log::{error, info};
-use sha256::digest;
+//! Invalid Digit because -1 for Palette Index
+
 use std::{
 	collections::HashMap,
 	fmt::Write as _,
-	fs::{self, File},
-	io::prelude::*,
-	path::{Path, PathBuf},
+	fs::{
+		self,
+		File,
+	},
+	io::{
+		BufReader,
+		prelude::*,
+	},
+	mem::take,
+	path::{
+		Path,
+		PathBuf,
+	},
 	time::Instant,
 };
-use xz2::read::XzDecoder;
+
+use anyhow::Result;
+use gif::{
+	DisposalMethod,
+	Frame,
+	Repeat,
+};
+use glam::{
+	UVec2,
+	uvec2,
+};
+use image::{
+	GrayImage,
+	Luma,
+	imageops::overlay,
+};
+use lzma_rust2::XzReader;
+use sha256::digest;
+use tracing::{
+	error,
+	info,
+};
 
 mod structure;
 use structure::*;
 
+use crate::helper::write_to_file;
+mod helper;
+
+const USER_UNDO: &str = "user undo";
+
+// Formatting
+const PLACE_LEN: usize = 10;
+const USED_LEN: usize = 10;
+const PERCENT_LEN: usize = 12;
+const COLOR_LEN: usize = 20;
+const MAX_POS_LEN: usize = 10;
+
 fn main() {
 	let begin_time = Instant::now();
 
-	let env = Env::default()
-		.filter_or("MY_LOG_LEVEL", "trace")
-		.write_style_or("MY_LOG_STYLE", "always");
-
-	env_logger::init_from_env(env);
+	tracing_subscriber::fmt::init();
 
 	if let Err(err) = stable_check_run() {
 		error!("Unable to process: {:?}", err);
 	};
 
 	let time_taken = begin_time.elapsed();
-	info!(
-		"Completed Placemap\nTime Taken: {:?}\nPress 'Enter' will terminate",
-		time_taken
-	);
+	info!("Completed Placemap\nTime Taken: {:?}\nPress 'Enter' to terminate", time_taken);
 
 	let mut buf = String::new();
 	let _ = std::io::stdin().read_line(&mut buf);
 }
 
 fn stable_check_run() -> Result<()> {
-	let input_dir = Path::new("input");
-	let output_dir = Path::new("output");
-
 	let settings = read_setting()?;
 
-	let pal_vec = PaletteVec::new(input_dir, settings.palette_code)?;
+	let pal_vec = PaletteVec::new(settings.palette_code)?;
 
-	let mut image_collection = intial_img(input_dir, &settings.canvas_code, pal_vec.blank_index)?;
+	let mut image_collection =
+		ImageCollection::intial_img(&settings.canvas_code, pal_vec.blank_index)?;
 
 	let mut output_info = OutputInfo::new(pal_vec.to_color_used());
 
-	process_place_map(
-		input_dir,
-		&pal_vec,
-		&settings,
-		&mut image_collection,
-		&mut output_info,
-	)?;
+	process_place_map(&pal_vec, &settings, &mut image_collection, &mut output_info)?;
 
-	save_img_collection(&mut image_collection, output_dir, &settings, &pal_vec)?;
+	save_img_collection(image_collection, &settings, &pal_vec)?;
 
-	create_user_stats(output_info, settings, output_dir, pal_vec)?;
+	create_user_stats(output_info, settings, pal_vec)?;
 
 	Ok(())
 }
@@ -70,11 +94,12 @@ fn stable_check_run() -> Result<()> {
 fn create_user_stats(
 	output_info: OutputInfo,
 	full_set_setting: Settings,
-	output_dir: &Path,
 	pal_vec: PaletteVec,
 ) -> Result<()> {
 	let Settings {
-		name, canvas_code, ..
+		name,
+		canvas_code,
+		..
 	} = full_set_setting;
 	let OutputInfo {
 		pixels,
@@ -92,69 +117,99 @@ fn create_user_stats(
 	let mut sort_color = color_used.to_vec();
 	sort_color.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap());
 
-	let sort_string: String =
-		sort_color
-			.iter()
-			.enumerate()
-			.fold(String::new(), |mut v, (rank, (a, b))| {
-				writeln!(
-					&mut v,
-					"{}\t{}\t{:.4}\t{}",
-					rank + 1,
-					b,
-					*b as f32 / pixels as f32 * 100.0,
-					pal_vec.info[*a as usize].name
-				)
-				.unwrap();
-				v
-			});
+	let total_sort = sort_color.len() * 54;
+	let sort_string: String = sort_color.iter().enumerate().fold(
+		String::with_capacity(total_sort),
+		|mut v, (rank, (color_index, used))| {
+			let pal_name = &pal_vec.info[*color_index as usize].name;
+			let percent_pix = *used as f64 / pixels as f64 * 100.;
 
-	let total_place = pix_place.len() * 25;
+			write!(&mut v, "{: <PLACE_LEN$}", rank + 1).unwrap();
+			write!(&mut v, "{: <USED_LEN$}", used).unwrap();
+			write!(&mut v, "{: <PERCENT_LEN$.4}", percent_pix).unwrap();
+			writeln!(&mut v, "{: <COLOR_LEN$}", pal_name).unwrap();
+
+			v
+		},
+	);
+
+	let total_place = pix_place.len() * 52;
 	let to_pix_place = pix_place.drain(..).fold(
 		String::with_capacity(total_place),
-		|mut pix_str, PixelInfoAt { at, pixel, x, y }| {
-			let name = pal_vec.info[pixel as usize].name.to_string();
-			writeln!(&mut pix_str, "{at}\t{x}\t{y}\t{name}").unwrap();
+		|mut pix_str,
+		 PixelInfoAt {
+		     at,
+		     color_index,
+		     pos: UVec2 {
+		         x,
+		         y,
+		     },
+		 }| {
+			let pal_name = &pal_vec.info[color_index as usize].name;
+
+			write!(&mut pix_str, "{: <PLACE_LEN$}", at).unwrap();
+			write!(&mut pix_str, "{: <MAX_POS_LEN$}", x).unwrap();
+			write!(&mut pix_str, "{: <MAX_POS_LEN$}", y).unwrap();
+			writeln!(&mut pix_str, "{: <COLOR_LEN$}", pal_name).unwrap();
+
 			pix_str
 		},
 	);
 
-	let make_string = format!(
-		"Canvas: {}\nUsers: {}\nPixels: {}\nSurvivor: {}\nUndo: {}\nReplace: {}\n\nDifferent Position\nPlace: {}\nUndo: {}\n\nTop Color:\nPlace\tUsed\tPercent\tColor\n{}\n\nPlace\tX\tY\tColor\n{}",
-		canvas_code,
-		name,
-		pixels,
-		survived,
-		undo,
-		replaced,
-		diff_pos_place,
-		diff_pos_undo,
-		sort_string,
-		to_pix_place
-	);
+	let mut output = String::new();
 
-	let stats_file_name = output_dir.join(format!("C{canvas_code} Stats {name}.txt"));
-	fs::write(stats_file_name, make_string)?;
+	// Perform Sub on u32, if panic overflow Sub, then it's bug
+	let overwrite_by_other = pixels - survived - replaced;
+
+	writeln!(&mut output, "Canvas: {}", canvas_code)?;
+	writeln!(&mut output, "Users: {}", name)?;
+	writeln!(&mut output, "Pixels: {}", pixels)?;
+	writeln!(&mut output, "Undo: {}", undo)?;
+	writeln!(&mut output, "Survivor: {}", survived)?;
+	writeln!(&mut output, "Overplace by Other: {}", overwrite_by_other)?;
+	writeln!(&mut output, "Self Replace: {}", replaced)?;
+
+	writeln!(&mut output, "\nDifferent Position")?;
+	writeln!(&mut output, "Place: {}", diff_pos_place)?;
+	writeln!(&mut output, "Undo: {}", diff_pos_undo)?;
+
+	writeln!(&mut output, "\n\nTop Color")?;
+	write!(&mut output, "{: <PLACE_LEN$}", "Place")?;
+	write!(&mut output, "{: <USED_LEN$}", "Used")?;
+	write!(&mut output, "{: <PERCENT_LEN$}", "Percent")?;
+	writeln!(&mut output, "{: <COLOR_LEN$}", "Color")?;
+	writeln!(&mut output, "{}", sort_string)?;
+
+	writeln!(&mut output, "\n\nExtra filter pixel")?;
+	write!(&mut output, "{: <PLACE_LEN$}", "Place")?;
+	write!(&mut output, "{: <MAX_POS_LEN$}", "X")?;
+	write!(&mut output, "{: <MAX_POS_LEN$}", "Y")?;
+	writeln!(&mut output, "{: <COLOR_LEN$}", "Color")?;
+	writeln!(&mut output, "{}", to_pix_place)?;
+
+	let stats_file_name = Path::new(OUTPUT_PATH).join(format!("C{canvas_code} Stats {name}.txt"));
+	write_to_file(&stats_file_name, output.as_bytes());
 
 	info!("Saved user stats.");
 	Ok(())
 }
 
-fn extract_log(input_dir: &Path, canvas_code: &str) -> Result<String> {
+fn extract_log(canvas_code: &str) -> Result<String> {
 	let mut logs = String::new();
 	info!("Reading Canvas {} logs.", canvas_code);
 
-	let xz_logged_path = input_dir.join(format!("pixels_c{canvas_code}.sanit.log.tar.xz"));
+	let xz_logged_path =
+		Path::new(INPUT_PATH).join(format!("pixels_c{canvas_code}.sanit.log.tar.xz"));
 	let open_file = File::open(xz_logged_path)?;
-	XzDecoder::new(open_file).read_to_string(&mut logs)?;
+	let buf_reader = BufReader::new(open_file);
+	XzReader::new(buf_reader, true).read_to_string(&mut logs)?;
 
 	info!("Complete Canvas {} logs ", canvas_code);
 	Ok(logs)
 }
 
 fn save_img_collection(
-	image_collection: &mut ImageCollection,
-	output_dir: &Path,
+	mut image_collection: ImageCollection,
 	Settings {
 		name,
 		canvas_code,
@@ -164,23 +219,19 @@ fn save_img_collection(
 	pal_vec: &PaletteVec,
 ) -> Result<()> {
 	let blank = pal_vec.blank_index;
-	let format_name =
-		|naming: &str| -> PathBuf { output_dir.join(format!("C{canvas_code} {name} {naming}")) };
+	let format_name = |naming: &str| -> PathBuf {
+		Path::new(OUTPUT_PATH).join(format!("C{canvas_code} {name} {naming}"))
+	};
 
 	{
 		let palette = pal_vec.expand_palette();
 
 		info!("Saving placemap...");
 
-		image_collection
-			.place
-			.save_in_color(&palette, format_name("Placemap.png"))?;
-
-		image_collection
-			.undo
+		take(&mut image_collection.place).save_in_color(&palette, format_name("Placemap.png"))?;
+		take(&mut image_collection.undo)
 			.save_in_color(&palette, format_name("Placemap Undo.png"))?;
-		image_collection
-			.survivor
+		take(&mut image_collection.survivor)
 			.save_in_color(&palette, format_name("Placemap Survivor.png"))?;
 
 		info!("Saved placemap.");
@@ -192,10 +243,12 @@ fn save_img_collection(
 	let total_frame = image_collection.gif.len() + 2;
 	let mut gif_ready: Vec<Frame> = Vec::with_capacity(total_frame);
 
-	image_collection
-		.gif
-		.drain(..)
-		.for_each(|GrayImageCropped { left, top, img }| {
+	image_collection.gif.drain(..).for_each(
+		|GrayImageCropped {
+		     left,
+		     top,
+		     img,
+		 }| {
 			let width = img.width() as u16;
 			let height = img.height() as u16;
 			let buff = img.to_vec();
@@ -214,7 +267,8 @@ fn save_img_collection(
 			};
 
 			gif_ready.push(frame);
-		});
+		},
+	);
 
 	let global_palette = &pal_vec.flat_palette();
 	let width = image_collection.place.width() as u16;
@@ -234,7 +288,6 @@ fn save_img_collection(
 }
 
 fn process_place_map(
-	input_dir: &Path,
 	pal_vec: &PaletteVec,
 	Settings {
 		user_key,
@@ -260,7 +313,7 @@ fn process_place_map(
 		pix_place,
 	}: &mut OutputInfo,
 ) -> Result<()> {
-	let logs = extract_log(input_dir, canvas_code)?;
+	let logs = extract_log(canvas_code)?;
 	let logs_queue = logs.trim().split('\n');
 	let blank = pal_vec.blank_index;
 
@@ -273,7 +326,7 @@ fn process_place_map(
 	let mut last_saved_frame = img_placed.clone();
 
 	// xy : color
-	let mut vec_survivor_pix: HashMap<(u32, u32), Luma<u8>> = HashMap::new();
+	let mut vec_survivor_pix: HashMap<UVec2, Luma<u8>> = HashMap::new();
 
 	info!("Processing logs...");
 
@@ -291,23 +344,26 @@ fn process_place_map(
 
 		// Not The Key Owner
 		if digested.encode_utf16().ne(rand_hash.encode_utf16()) {
-			if action == "user undo" {
-				let Some(old_survivor) = vec_survivor_pix.remove(&(x, y)) else {
+			if action == USER_UNDO {
+				let Some(old_survivor) = vec_survivor_pix.remove(&uvec2(x, y)) else {
 					continue;
 				};
 				img_survivor.put_pixel(x, y, old_survivor);
 				continue;
 			}
 			let old_survivor = img_survivor.get_pixel(x, y);
-			vec_survivor_pix.insert((x, y), *old_survivor);
+			vec_survivor_pix.insert(uvec2(x, y), *old_survivor);
 			img_survivor.put_pixel(x, y, Luma([blank]));
 			continue;
 		}
 
-		let indexed: u8 = color_index.parse()?;
+		// Ignore -1
+		let Some(indexed): Option<u8> = color_index.parse().ok() else {
+			continue;
+		};
 		let luma = Luma([indexed]);
 
-		if action == "user undo" {
+		if action == USER_UNDO {
 			pix_th.contains(pixels).then(|| pix_place.pop());
 			if *pixels % pix_per_frame == 0 {
 				last_saved_frame = last_saved_frame_backup.clone();
@@ -349,21 +405,15 @@ fn process_place_map(
 			cropped.diff_out_self(&last_saved_frame, blank);
 			cropped.crop_in(blank);
 			last_saved_frame_backup = last_saved_frame.clone();
-			overlay(
-				&mut last_saved_frame,
-				&cropped.img,
-				cropped.left as i64,
-				cropped.top as i64,
-			);
+			overlay(&mut last_saved_frame, &cropped.img, cropped.left as i64, cropped.top as i64);
 			img_gif.push(cropped);
 		}
 
 		if pix_th.contains(pixels) {
 			pix_place.push(PixelInfoAt {
-				at: *pixels,
-				pixel: indexed,
-				x,
-				y,
+				at:          *pixels,
+				color_index: indexed,
+				pos:         uvec2(x, y),
 			});
 		}
 	}
@@ -380,7 +430,7 @@ fn process_place_map(
 	info!("Processed logs.");
 
 	let count_visible_pixel =
-		|imaged: &GrayImage| -> usize { imaged.pixels().filter(|x| x.0[0] != blank).count() };
+		|imaged: &GrayImage| -> u32 { imaged.pixels().filter(|x| x.0[0] != blank).count() as u32 };
 
 	*survived = count_visible_pixel(img_survivor);
 	*diff_pos_place = count_visible_pixel(img_placed);
@@ -389,19 +439,8 @@ fn process_place_map(
 	Ok(())
 }
 
-fn intial_img(input_dir: &Path, canvas_code: &str, pixel: u8) -> Result<ImageCollection> {
-	let img_path = input_dir.join(format!("canvas-{canvas_code}-initial.png"));
-	let (width, height) = image::open(img_path)?.dimensions();
-
-	let img_collection = ImageCollection::new_size(width, height, pixel);
-
-	info!("Intial Image ready");
-
-	Ok(img_collection)
-}
-
 fn read_setting() -> Result<Settings> {
-	let bytes_read = fs::read("settings.ron")?;
+	let bytes_read = fs::read(SETTING_PATH)?;
 	let settings = ron::de::from_bytes(&bytes_read)?;
 	info!("Complete reading Setting.");
 	Ok(settings)

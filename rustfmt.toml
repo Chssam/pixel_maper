@@ -1,3 +1,26 @@
+# Use tab instead of space
 hard_tabs = true
+
+# Group imports and format alphabetically
+group_imports = "StdExternalCrate"
+reorder_imports = true
+reorder_modules = true
+imports_layout = "Vertical"
+imports_granularity = "Crate"
+
+trailing_comma = "Vertical"
+
+struct_field_align_threshold = 20
+struct_lit_single_line = false
+
+indent_style = "Block"
+fn_call_width = 80
+fn_single_line = true
+
 match_arm_leading_pipes = "Preserve"
-match_block_trailing_comma = true
+match_block_trailing_comma = false
+max_width = 100
+
+spaces_around_ranges = true
+float_literal_trailing_zero = "Never"
+format_strings = true
